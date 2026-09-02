@@ -14,20 +14,19 @@ Multi-provider, multi-account, Keychain-based auth, in a simple menu bar package
 ## Build & run
 
 ```sh
-swift build
-swift run AIUsageMeterApp
+./scripts/run.sh
 ```
 
-Or open `Package.swift` directly in Xcode 15+ for full build/debug support — no `.xcodeproj` is checked in.
+Builds the app, wraps it in a minimal `AI Usage Meter.app` bundle under `.build/` (so Dock/Cmd+Tab show a real name instead of the raw binary name), ad-hoc signs it, and launches it via `open`. Pass `release` as an argument to build in release mode.
 
-`swift run` launches a bare, unsigned executable (no `.app` bundle yet), so:
-- It'll show a Dock icon during development — harmless, only fixed once `LSUIElement`/proper bundling is set up for packaging.
-- Reading the Claude Code CLI's Keychain item triggers a one-time macOS access-permission prompt. If it keeps reappearing after every rebuild, ad-hoc sign the debug binary so it has a stable identity:
-  ```sh
-  codesign --force --deep --sign - .build/debug/AIUsageMeterApp
-  ```
+For iteration without the bundle step, `swift build && swift run AIUsageMeterApp` still works — or open `Package.swift` directly in Xcode 15+ for full build/debug support (no `.xcodeproj` is checked in). A bare `swift run` executable has no bundle, so it'll show as "AIUsageMeterApp" in Dock/Cmd+Tab; use `scripts/run.sh` when that matters.
 
-Code signing, notarization, and a proper `.app` bundle are future work — not needed for local use.
+Either way, reading the Claude Code CLI's Keychain item triggers a one-time macOS access-permission prompt. If it keeps reappearing after every rebuild, that's because the binary's signing identity changed — `scripts/run.sh` re-signs on every run so this shouldn't recur; for a bare `swift run` binary, sign it manually:
+```sh
+codesign --force --deep --sign - .build/debug/AIUsageMeterApp
+```
+
+Notarization and a properly-signed, distributable `.app` bundle are future work — `scripts/run.sh`'s bundle is unsigned beyond ad-hoc, for local use only.
 
 ## How Claude auth works
 

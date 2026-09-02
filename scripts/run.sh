@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Builds AIUsageMeterApp and wraps it in a minimal, unsigned "AI Usage
+# Meter.app" bundle before launching it via `open`. A bare `swift run`
+# executable has no Info.plist, so macOS shows Dock/Cmd+Tab text derived
+# from the binary's filename ("AIUsageMeterApp") instead of a real app
+# name — this gives it one for local development. Not a substitute for
+# real packaging (code signing, notarization) before any distribution.
+
+cd "$(dirname "$0")/.."
+
+CONFIGURATION="${1:-debug}"
+APP_NAME="AI Usage Meter"
+EXECUTABLE_NAME="AIUsageMeterApp"
+BUNDLE=".build/${APP_NAME}.app"
+
+echo "Building ($CONFIGURATION)..."
+swift build -c "$CONFIGURATION"
+
+echo "Assembling ${BUNDLE}..."
+rm -rf "$BUNDLE"
+mkdir -p "$BUNDLE/Contents/MacOS"
+cp ".build/${CONFIGURATION}/${EXECUTABLE_NAME}" "$BUNDLE/Contents/MacOS/${EXECUTABLE_NAME}"
+
+cat > "$BUNDLE/Contents/Info.plist" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleName</key>
+	<string>${APP_NAME}</string>
+	<key>CFBundleDisplayName</key>
+	<string>${APP_NAME}</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.nickmathew.ai-usage-meter</string>
+	<key>CFBundleExecutable</key>
+	<string>${EXECUTABLE_NAME}</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>14.0</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+</dict>
+</plist>
+PLIST
+
+echo "Ad-hoc signing..."
+codesign --force --deep --sign - "$BUNDLE"
+
+echo "Launching..."
+open "$BUNDLE"
