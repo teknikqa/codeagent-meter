@@ -26,6 +26,10 @@ struct MenuBarContentView: View {
                 openWindow(id: "main")
             }
 
+            Button("Add Account…") {
+                openWindow(id: "add-account")
+            }
+
             Divider()
 
             Button("Quit") {
