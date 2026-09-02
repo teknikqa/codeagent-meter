@@ -1,7 +1,7 @@
 {
-  "name": "ai-usage-meter",
+  "name": "codeagent-meter",
   "private": true,
-  "description": "Commit-lint and release tooling for the ai-usage-meter macOS app (the app itself is a Swift package).",
+  "description": "Commit-lint and release tooling for the CodeAgent Meter macOS app (the app itself is a Swift package).",
   "devDependencies": {
     "@commitlint/cli": "^19.5.0",
     "@commitlint/config-conventional": "^19.5.0",
