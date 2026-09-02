@@ -1,5 +1,5 @@
 import XCTest
-@testable import AIUsageMeterCore
+@testable import CodeAgentMeterCore
 
 private struct StubUsageProvider: UsageProvider {
     static let vendorID = "stub"

@@ -2,24 +2,24 @@
 import PackageDescription
 
 let package = Package(
-    name: "ai-usage-meter",
+    name: "codeagent-meter",
     platforms: [
         .macOS(.v14)
     ],
     products: [
-        .executable(name: "AIUsageMeterApp", targets: ["AIUsageMeterApp"])
+        .executable(name: "CodeAgentMeterApp", targets: ["CodeAgentMeterApp"])
     ],
     targets: [
         .target(
-            name: "AIUsageMeterCore"
+            name: "CodeAgentMeterCore"
         ),
         .executableTarget(
-            name: "AIUsageMeterApp",
-            dependencies: ["AIUsageMeterCore"]
+            name: "CodeAgentMeterApp",
+            dependencies: ["CodeAgentMeterCore"]
         ),
         .testTarget(
-            name: "AIUsageMeterCoreTests",
-            dependencies: ["AIUsageMeterCore"]
+            name: "CodeAgentMeterCoreTests",
+            dependencies: ["CodeAgentMeterCore"]
         ),
     ]
 )

@@ -1,10 +1,10 @@
 import XCTest
-@testable import AIUsageMeterCore
+@testable import CodeAgentMeterCore
 
 final class KeychainStoreTests: XCTestCase {
     // Unique per test instance so tests never collide with each other or with
     // real app data in the Keychain.
-    private let service = "com.nickmathew.ai-usage-meter.tests.\(UUID().uuidString)"
+    private let service = "com.nickmathew.codeagent-meter.tests.\(UUID().uuidString)"
 
     func testWriteAndReadRoundTrip() throws {
         let store = KeychainStore(service: service)

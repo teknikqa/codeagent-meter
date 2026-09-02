@@ -1,5 +1,5 @@
 import XCTest
-@testable import AIUsageMeterCore
+@testable import CodeAgentMeterCore
 
 final class ClaudeCLICredentialReaderTests: XCTestCase {
     func testDecodesVerifiedCredentialsFileShape() throws {

@@ -1,4 +1,4 @@
-# ai-usage-meter
+# CodeAgent Meter
 
 A native macOS menu bar app for tracking usage/quota across AI coding agents. MVP scope is Claude only, with multiple accounts supported.
 
@@ -17,13 +17,13 @@ Multi-provider, multi-account, Keychain-based auth, in a simple menu bar package
 ./scripts/run.sh
 ```
 
-Builds the app, wraps it in a minimal `AI Usage Meter.app` bundle under `.build/` (so Dock/Cmd+Tab show a real name instead of the raw binary name), ad-hoc signs it, and launches it via `open`. Pass `release` as an argument to build in release mode.
+Builds the app, wraps it in a minimal `CodeAgent Meter.app` bundle under `.build/` (so Dock/Cmd+Tab show a real name instead of the raw binary name), ad-hoc signs it, and launches it via `open`. Pass `release` as an argument to build in release mode.
 
-For iteration without the bundle step, `swift build && swift run AIUsageMeterApp` still works — or open `Package.swift` directly in Xcode 15+ for full build/debug support (no `.xcodeproj` is checked in). A bare `swift run` executable has no bundle, so it'll show as "AIUsageMeterApp" in Dock/Cmd+Tab; use `scripts/run.sh` when that matters.
+For iteration without the bundle step, `swift build && swift run CodeAgentMeterApp` still works — or open `Package.swift` directly in Xcode 15+ for full build/debug support (no `.xcodeproj` is checked in). A bare `swift run` executable has no bundle, so it'll show as "CodeAgentMeterApp" in Dock/Cmd+Tab; use `scripts/run.sh` when that matters.
 
 Either way, reading the Claude Code CLI's Keychain item triggers a one-time macOS access-permission prompt. If it keeps reappearing after every rebuild, that's because the binary's signing identity changed — `scripts/run.sh` re-signs on every run so this shouldn't recur; for a bare `swift run` binary, sign it manually:
 ```sh
-codesign --force --deep --sign - .build/debug/AIUsageMeterApp
+codesign --force --deep --sign - .build/debug/CodeAgentMeterApp
 ```
 
 Notarization and a properly-signed, distributable `.app` bundle are future work — `scripts/run.sh`'s bundle is unsigned beyond ad-hoc, for local use only.
@@ -39,8 +39,8 @@ Add an account from the menu bar dropdown → **Add Account…**.
 
 ## Architecture
 
-- `Sources/AIUsageMeterCore` — vendor-agnostic logic: the `UsageProvider` protocol, Claude's provider implementation (OAuth + cookie clients), Keychain wrapper, account persistence, refresh scheduling. No SwiftUI/AppKit imports.
-- `Sources/AIUsageMeterApp` — the SwiftUI app: `MenuBarExtra` scene, a full `WindowGroup` scene showing the same accounts with more detail, and onboarding UI. `AppState` is the single `ObservableObject` both scenes read from, so they can never disagree.
+- `Sources/CodeAgentMeterCore` — vendor-agnostic logic: the `UsageProvider` protocol, Claude's provider implementation (OAuth + cookie clients), Keychain wrapper, account persistence, refresh scheduling. No SwiftUI/AppKit imports.
+- `Sources/CodeAgentMeterApp` — the SwiftUI app: `MenuBarExtra` scene, a full `WindowGroup` scene showing the same accounts with more detail, and onboarding UI. `AppState` is the single `ObservableObject` both scenes read from, so they can never disagree.
 
 Adding a second provider (Codex, Gemini, Copilot) means a new `Providers/<Name>/` module conforming to `UsageProvider`, registered in `ProviderRegistry` — not built yet, this is MVP's extension seam, not a shipped feature.
 

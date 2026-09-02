@@ -22,7 +22,7 @@ public struct AppConfigStore: Sendable {
     public static var defaultFileURL: URL {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         return appSupport
-            .appendingPathComponent("ai-usage-meter", isDirectory: true)
+            .appendingPathComponent("codeagent-meter", isDirectory: true)
             .appendingPathComponent("config.json")
     }
 

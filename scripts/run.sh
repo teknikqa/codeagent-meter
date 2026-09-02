@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Builds AIUsageMeterApp and wraps it in a minimal, unsigned "AI Usage
+# Builds CodeAgentMeterApp and wraps it in a minimal, unsigned "CodeAgent
 # Meter.app" bundle before launching it via `open`. A bare `swift run`
 # executable has no Info.plist, so macOS shows Dock/Cmd+Tab text derived
-# from the binary's filename ("AIUsageMeterApp") instead of a real app
+# from the binary's filename ("CodeAgentMeterApp") instead of a real app
 # name — this gives it one for local development. Not a substitute for
 # real packaging (code signing, notarization) before any distribution.
 
 cd "$(dirname "$0")/.."
 
 CONFIGURATION="${1:-debug}"
-APP_NAME="AI Usage Meter"
-EXECUTABLE_NAME="AIUsageMeterApp"
+APP_NAME="CodeAgent Meter"
+EXECUTABLE_NAME="CodeAgentMeterApp"
 BUNDLE=".build/${APP_NAME}.app"
 
 echo "Building ($CONFIGURATION)..."
@@ -33,7 +33,7 @@ cat > "$BUNDLE/Contents/Info.plist" <<PLIST
 	<key>CFBundleDisplayName</key>
 	<string>${APP_NAME}</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.nickmathew.ai-usage-meter</string>
+	<string>com.nickmathew.codeagent-meter</string>
 	<key>CFBundleExecutable</key>
 	<string>${EXECUTABLE_NAME}</string>
 	<key>CFBundlePackageType</key>

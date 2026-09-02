@@ -1,5 +1,5 @@
 import SwiftUI
-import AIUsageMeterCore
+import CodeAgentMeterCore
 
 struct MainWindowView: View {
     @EnvironmentObject var appState: AppState
@@ -24,7 +24,7 @@ struct MainWindowView: View {
             }
         }
         .frame(minWidth: 480, minHeight: 320)
-        .navigationTitle("ai-usage-meter")
+        .navigationTitle("CodeAgent Meter")
         .toolbar {
             ToolbarItem {
                 Button {

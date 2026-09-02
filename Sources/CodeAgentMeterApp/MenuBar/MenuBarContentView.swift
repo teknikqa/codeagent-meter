@@ -1,5 +1,5 @@
 import SwiftUI
-import AIUsageMeterCore
+import CodeAgentMeterCore
 
 struct MenuBarContentView: View {
     @ObservedObject var appState: AppState
@@ -22,7 +22,7 @@ struct MenuBarContentView: View {
                 Task { await appState.refreshAll() }
             }
 
-            Button("Open ai-usage-meter") {
+            Button("Open CodeAgent Meter") {
                 openWindow(id: "main")
                 activateAndFocusNewestWindow()
             }
