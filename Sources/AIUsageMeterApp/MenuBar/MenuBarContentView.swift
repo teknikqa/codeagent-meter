@@ -24,10 +24,12 @@ struct MenuBarContentView: View {
 
             Button("Open ai-usage-meter") {
                 openWindow(id: "main")
+                NSApplication.shared.activate(ignoringOtherApps: true)
             }
 
             Button("Add Account…") {
                 openWindow(id: "add-account")
+                NSApplication.shared.activate(ignoringOtherApps: true)
             }
 
             Divider()

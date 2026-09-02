@@ -11,6 +11,10 @@ struct AIUsageMeterApp: App {
         } label: {
             Label(menuBarLabelText, systemImage: "gauge.with.dots.needle.67percent")
         }
+        // Default (.menu) style renders content as a native NSMenu, which
+        // doesn't support custom SwiftUI layouts like ProgressView — rows
+        // show up dimmed/truncated. .window renders a real SwiftUI view.
+        .menuBarExtraStyle(.window)
 
         WindowGroup(id: "main") {
             MainWindowView()
