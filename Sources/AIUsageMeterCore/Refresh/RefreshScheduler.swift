@@ -1,6 +1,6 @@
 import Foundation
 
-/// Fixed-interval refresh loop. CodexBar's adaptive/backoff scheduler is
+/// Fixed-interval refresh loop. An adaptive/backoff scheduler is
 /// deliberately not built here — this is intentionally the simplest thing
 /// that works for MVP.
 @MainActor

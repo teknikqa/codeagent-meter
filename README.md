@@ -2,7 +2,7 @@
 
 A native macOS menu bar app for tracking usage/quota across AI coding agents. MVP scope is Claude only, with multiple accounts supported.
 
-Modeled on [CodexBar](https://github.com/steipete/CodexBar) (multi-provider, multi-account, Keychain-based auth), kept as simple as [ClaudeMeter](https://github.com/eddmann/ClaudeMeter) / [ClaudeUsageBar](https://github.com/Artzainnn/ClaudeUsageBar).
+Multi-provider, multi-account, Keychain-based auth, in a simple menu bar package.
 
 ## Requirements
 
@@ -31,7 +31,7 @@ Code signing, notarization, and a proper `.app` bundle are future work — not n
 
 ## How Claude auth works
 
-Anthropic doesn't publish a usage API for personal accounts, so this app — like every reference project above — borrows credentials rather than requiring an API key:
+Anthropic doesn't publish a usage API for personal accounts, so this app borrows credentials rather than requiring an API key:
 
 1. **CLI-first (zero setup)**: reads the OAuth credentials Claude Code CLI already stores in the `"Claude Code-credentials"` Keychain item (falling back to `~/.claude/.credentials.json`), then calls the undocumented `api.anthropic.com/api/oauth/usage`/`/profile` endpoints. Refreshed tokens are cached in **this app's own** Keychain item — the CLI's credential item is never written to, so its own session is never touched.
 2. **Manual fallback**: paste a `sessionKey` cookie from claude.ai (DevTools → Application → Cookies), validated immediately against `claude.ai/api/organizations` before an account is ever created. Stored in this app's own Keychain service — never `UserDefaults`.
@@ -48,7 +48,7 @@ Adding a second provider (Codex, Gemini, Copilot) means a new `Providers/<Name>/
 ## Non-goals for MVP
 
 - No usage history or charting — the window shows the current live snapshot only.
-- No adaptive/backoff refresh scheduling (CodexBar has this) — a fixed 60s interval, configurable via `AppConfig.refreshIntervalSeconds`.
+- No adaptive/backoff refresh scheduling — a fixed 60s interval, configurable via `AppConfig.refreshIntervalSeconds`.
 - No Admin API (org-level `cost_report`/`usage_report`) client, even though the `.adminKey` account kind exists in the data model — no onboarding flow creates one yet.
 
 ## Commit conventions & releases

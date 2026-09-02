@@ -11,7 +11,6 @@ public enum ClaudeCookieError: Error {
 
 /// Fetches Claude usage via claude.ai's session-cookie-authenticated API, the
 /// manual fallback for accounts without a local Claude Code CLI login.
-/// Endpoints and headers verified against ClaudeMeter's implementation.
 public struct ClaudeCookieClient: Sendable {
     /// Keychain service this app's own secrets (session cookies) live under.
     static let secretsService = "com.nickmathew.ai-usage-meter"

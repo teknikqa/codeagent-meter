@@ -2,8 +2,7 @@ import Foundation
 
 /// A single usage window (e.g. the rolling 5-hour or 7-day limit), shared by
 /// both the OAuth and cookie-session APIs — verified to have the same
-/// `{ utilization, resets_at }` shape in both (cross-checked against
-/// CodexBar's `ClaudeOAuthUsageFetcher` and ClaudeMeter's `UsageLimitResponse`).
+/// `{ utilization, resets_at }` shape in both.
 /// `utilization` is already a 0-100 percentage, not a 0-1 fraction.
 struct ClaudeUsageWindow: Decodable {
     let utilization: Double?
@@ -22,8 +21,8 @@ struct ClaudeUsageWindow: Decodable {
     }
 }
 
-/// `GET api.anthropic.com/api/oauth/usage`. Verified against CodexBar's
-/// `OAuthUsageResponse` — usage is nested per time window, not a flat object.
+/// `GET api.anthropic.com/api/oauth/usage`. Usage is nested per time
+/// window, not a flat object.
 struct ClaudeOAuthUsageResponse: Decodable {
     let fiveHour: ClaudeUsageWindow?
     let sevenDay: ClaudeUsageWindow?
@@ -34,7 +33,7 @@ struct ClaudeOAuthUsageResponse: Decodable {
     }
 
     /// The 5-hour session window is the most immediately actionable number
-    /// for a menu bar badge, matching what ClaudeMeter surfaces as primary.
+    /// for a menu bar badge.
     var resolvedPercentUsed: Double? {
         fiveHour?.utilization ?? sevenDay?.utilization
     }
@@ -45,8 +44,8 @@ struct ClaudeOAuthUsageResponse: Decodable {
 }
 
 /// `GET api.anthropic.com/api/oauth/profile`. Only `email_address` is
-/// confirmed present (verified against CodexBar) — nested under `account`
-/// or top-level depending on API version.
+/// confirmed present — nested under `account` or top-level depending on
+/// API version.
 struct ClaudeOAuthProfileResponse: Decodable {
     let emailAddress: String?
 
@@ -70,7 +69,7 @@ struct ClaudeOAuthProfileResponse: Decodable {
     }
 }
 
-// MARK: - claude.ai cookie-session API (verified against ClaudeMeter's implementation)
+// MARK: - claude.ai cookie-session API
 
 /// `GET /api/organizations` — one entry per org the session belongs to.
 struct ClaudeOrganization: Decodable {
