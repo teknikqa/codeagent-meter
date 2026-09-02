@@ -55,15 +55,29 @@ public struct ClaudeCookieClient: Sendable {
     public func validateAndDiscoverOrganization(sessionKey: String) async throws -> (orgId: String, orgName: String) {
         let organizations: [ClaudeOrganization] = try await request(
             "\(Self.baseURL)/organizations",
-            sessionKey: sessionKey
+            sessionKey: Self.normalizeSessionKey(sessionKey)
         )
         guard let first = organizations.first else { throw ClaudeCookieError.noOrganizationsFound }
         return (first.uuid, first.name)
     }
 
     public func storeSessionKey(_ sessionKey: String, account: ClaudeAccount) throws {
-        guard let data = sessionKey.data(using: .utf8) else { throw ClaudeCookieError.missingCookie }
+        let normalized = Self.normalizeSessionKey(sessionKey)
+        guard let data = normalized.data(using: .utf8) else { throw ClaudeCookieError.missingCookie }
         try secretsStore.write(data: data, account: account.keychainKey)
+    }
+
+    /// Users are commonly instructed to copy the cookie two different ways:
+    /// just the bare `sessionKey` value (Application/Storage tab), or the
+    /// full `Cookie:` request header (Network tab, which bundles every
+    /// cookie together). Accept either and extract just the value we need.
+    /// Internal (not private) so tests can exercise it directly.
+    static func normalizeSessionKey(_ rawInput: String) -> String {
+        let trimmed = rawInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let range = trimmed.range(of: "sessionKey=") else { return trimmed }
+        let afterKey = trimmed[range.upperBound...]
+        let value = afterKey.split(separator: ";", maxSplits: 1)[0]
+        return value.trimmingCharacters(in: .whitespaces)
     }
 
     private func readSessionKey(account: ClaudeAccount) throws -> String {
