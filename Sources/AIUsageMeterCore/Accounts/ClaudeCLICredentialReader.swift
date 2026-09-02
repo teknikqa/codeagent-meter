@@ -1,6 +1,6 @@
 import Foundation
 
-public enum ClaudeCLICredentialError: Error {
+public enum ClaudeCLICredentialError: Error, Equatable {
     case notFound
     case malformedData
 }
@@ -38,7 +38,9 @@ public struct ClaudeCLICredentialReader: Sendable {
     /// Matches the shape of Claude Code's own credential storage:
     /// a top-level `claudeAiOauth` object with `accessToken`/`refreshToken`/`expiresAt`
     /// (epoch milliseconds), alongside unrelated `mcpOAuth` entries this app ignores.
-    private static func decode(_ data: Data) throws -> ClaudeCLICredentials {
+    /// Internal (not private) so tests can exercise decoding with synthetic
+    /// JSON instead of depending on real Keychain/file state.
+    static func decode(_ data: Data) throws -> ClaudeCLICredentials {
         struct CredentialsFile: Decodable {
             struct OAuth: Decodable {
                 let accessToken: String
