@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/teknikqa/ai-usage-meter/compare/v1.0.0...v1.1.0) (2026-09-02)
+
+
+### Features
+
+* **app:** add account removal from the full window ([#3](https://github.com/teknikqa/ai-usage-meter/issues/3)) ([00bc0a0](https://github.com/teknikqa/ai-usage-meter/commit/00bc0a001acbb5524498b63d1451db37b16474aa))
+
 ## 1.0.0 (2026-09-02)
 
 
