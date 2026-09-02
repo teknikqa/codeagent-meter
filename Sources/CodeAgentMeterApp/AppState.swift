@@ -1,5 +1,5 @@
 import Foundation
-import AIUsageMeterCore
+import CodeAgentMeterCore
 
 /// Bridges `AccountStore` (an actor in Core) to SwiftUI's observation model.
 /// This is the single source of truth the menu bar and the full window both

@@ -1,8 +1,8 @@
 import SwiftUI
-import AIUsageMeterCore
+import CodeAgentMeterCore
 
 @main
-struct AIUsageMeterApp: App {
+struct CodeAgentMeterApp: App {
     @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
     @StateObject private var appState = AppState()
 
@@ -30,7 +30,7 @@ struct AIUsageMeterApp: App {
     }
 
     private var menuBarLabelText: String {
-        guard let percent = appState.headlinePercent else { return "ai-usage-meter" }
+        guard let percent = appState.headlinePercent else { return "CodeAgent Meter" }
         return "\(Int(percent))%"
     }
 }

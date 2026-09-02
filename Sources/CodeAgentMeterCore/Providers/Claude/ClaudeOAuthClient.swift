@@ -15,7 +15,7 @@ public enum ClaudeOAuthError: Error {
 /// never touched.
 public struct ClaudeOAuthClient: Sendable {
     /// Internal (not private) so `AccountStore` can clean up cached tokens on account removal.
-    static let tokenCacheService = "com.nickmathew.ai-usage-meter.claude-cli-cache"
+    static let tokenCacheService = "com.nickmathew.codeagent-meter.claude-cli-cache"
     private static let clientID = "9d1c250a-e61b-44d9-88ed-5944d1962f5e"
     private static let tokenRefreshURL = URL(string: "https://platform.claude.com/v1/oauth/token")!
     private static let usageURL = URL(string: "https://api.anthropic.com/api/oauth/usage")!

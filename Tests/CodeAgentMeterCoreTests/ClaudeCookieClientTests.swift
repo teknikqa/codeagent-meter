@@ -1,5 +1,5 @@
 import XCTest
-@testable import AIUsageMeterCore
+@testable import CodeAgentMeterCore
 
 final class ClaudeCookieClientTests: XCTestCase {
     func testNormalizeAcceptsBareValue() {

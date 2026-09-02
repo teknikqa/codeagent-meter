@@ -1,5 +1,5 @@
 import SwiftUI
-import AIUsageMeterCore
+import CodeAgentMeterCore
 
 struct AccountDetailView: View {
     let account: ClaudeAccount

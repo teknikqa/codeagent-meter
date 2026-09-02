@@ -1,5 +1,5 @@
 import SwiftUI
-import AIUsageMeterCore
+import CodeAgentMeterCore
 
 struct AddAccountView: View {
     @EnvironmentObject var appState: AppState

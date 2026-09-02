@@ -13,7 +13,7 @@ public enum ClaudeCookieError: Error {
 /// manual fallback for accounts without a local Claude Code CLI login.
 public struct ClaudeCookieClient: Sendable {
     /// Keychain service this app's own secrets (session cookies) live under.
-    static let secretsService = "com.nickmathew.ai-usage-meter"
+    static let secretsService = "com.nickmathew.codeagent-meter"
     private static let baseURL = "https://claude.ai/api"
 
     private let secretsStore: KeychainStore
