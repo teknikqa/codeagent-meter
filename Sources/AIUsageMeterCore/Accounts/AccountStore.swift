@@ -23,8 +23,18 @@ public actor AccountStore {
     }
 
     public func removeAccount(id: UUID) throws {
+        guard let account = accounts.first(where: { $0.id == id }) else { return }
         accounts.removeAll { $0.id == id }
         try persist()
+        deleteCredentials(for: account)
+    }
+
+    /// Removes whatever secret this account has stored, regardless of which
+    /// auth kind it is — both deletes are no-ops if nothing's there, so this
+    /// doesn't need to branch on `account.authKind`.
+    private func deleteCredentials(for account: ClaudeAccount) {
+        try? KeychainStore(service: ClaudeCookieClient.secretsService).delete(account: account.keychainKey)
+        try? KeychainStore(service: ClaudeOAuthClient.tokenCacheService).delete(account: account.keychainKey)
     }
 
     /// Refreshes every account concurrently. A failure for one account is

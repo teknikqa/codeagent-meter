@@ -108,4 +108,22 @@ final class AccountStoreTests: XCTestCase {
         let accounts = await store.accounts
         XCTAssertTrue(accounts.isEmpty)
     }
+
+    func testRemoveAccountDeletesStoredCookieSecret() async throws {
+        let configStore = makeTempConfigStore()
+        let provider = StubUsageProvider(result: .success(UsageSnapshot(percentUsed: 1, resetsAt: nil, detailLabel: nil)))
+        let account = makeAccount()
+
+        let secretsStore = KeychainStore(service: ClaudeCookieClient.secretsService)
+        try secretsStore.write(data: Data("sk-ant-sid01-test".utf8), account: account.keychainKey)
+        defer { try? secretsStore.delete(account: account.keychainKey) }
+
+        let store = AccountStore(configStore: configStore, provider: provider)
+        try await store.addAccount(account)
+        try await store.removeAccount(id: account.id)
+
+        XCTAssertThrowsError(try secretsStore.readData(account: account.keychainKey)) { error in
+            XCTAssertEqual(error as? KeychainError, .itemNotFound)
+        }
+    }
 }

@@ -4,6 +4,9 @@ import AIUsageMeterCore
 struct AccountDetailView: View {
     let account: ClaudeAccount
     let state: AppState.RefreshState
+    let onRemove: () -> Void
+
+    @State private var showRemoveConfirmation = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -14,6 +17,13 @@ struct AccountDetailView: View {
                 Text(authKindLabel)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                Button {
+                    showRemoveConfirmation = true
+                } label: {
+                    Image(systemName: "trash")
+                }
+                .buttonStyle(.borderless)
+                .help("Remove Account")
             }
 
             switch state {
@@ -49,6 +59,16 @@ struct AccountDetailView: View {
             }
         }
         .padding(.vertical, 4)
+        .confirmationDialog(
+            "Remove “\(account.label)”?",
+            isPresented: $showRemoveConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Remove", role: .destructive, action: onRemove)
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("You'll need to re-add it to track its usage again.")
+        }
     }
 
     private var authKindLabel: String {
