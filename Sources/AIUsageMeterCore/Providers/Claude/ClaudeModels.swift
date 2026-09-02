@@ -47,3 +47,43 @@ struct ClaudeOAuthProfileResponse: Decodable {
         }
     }
 }
+
+// MARK: - claude.ai cookie-session API (verified against ClaudeMeter's implementation)
+
+/// `GET /api/organizations` — one entry per org the session belongs to.
+struct ClaudeOrganization: Decodable {
+    let id: Int
+    let uuid: String
+    let name: String
+}
+
+/// `GET /api/organizations/{uuid}/usage`.
+struct ClaudeUsageAPIResponse: Decodable {
+    let fiveHour: ClaudeUsageLimitResponse
+    let sevenDay: ClaudeUsageLimitResponse
+    let sevenDaySonnet: ClaudeUsageLimitResponse?
+
+    enum CodingKeys: String, CodingKey {
+        case fiveHour = "five_hour"
+        case sevenDay = "seven_day"
+        case sevenDaySonnet = "seven_day_sonnet"
+    }
+}
+
+struct ClaudeUsageLimitResponse: Decodable {
+    /// Percentage, 0-100.
+    let utilization: Double
+    let resetsAt: String?
+
+    enum CodingKeys: String, CodingKey {
+        case utilization
+        case resetsAt = "resets_at"
+    }
+
+    var resolvedResetsAt: Date? {
+        guard let resetsAt else { return nil }
+        let precise = ISO8601DateFormatter()
+        precise.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return precise.date(from: resetsAt) ?? ISO8601DateFormatter().date(from: resetsAt)
+    }
+}

@@ -13,10 +13,7 @@ public enum ClaudeOAuthError: Error {
 /// Never writes back into the CLI's own Keychain item — refreshed tokens are
 /// cached separately under this app's own service so the CLI's session is
 /// never touched.
-public struct ClaudeOAuthClient: UsageProvider {
-    public static let vendorID = "claude"
-    public static let displayName = "Claude"
-
+public struct ClaudeOAuthClient: Sendable {
     private static let tokenCacheService = "com.nickmathew.ai-usage-meter.claude-cli-cache"
     private static let clientID = "9d1c250a-e61b-44d9-88ed-5944d1962f5e"
     private static let tokenRefreshURL = URL(string: "https://platform.claude.com/v1/oauth/token")!
