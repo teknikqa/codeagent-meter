@@ -8,10 +8,6 @@ struct AIUsageMeterApp: App {
     var body: some Scene {
         MenuBarExtra {
             MenuBarContentView(appState: appState)
-                .task {
-                    await appState.loadAccounts()
-                    await appState.refreshAll()
-                }
         } label: {
             Label(menuBarLabelText, systemImage: "gauge.with.dots.needle.67percent")
         }

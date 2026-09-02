@@ -17,9 +17,29 @@ public final class AppState: ObservableObject {
     @Published public private(set) var accountStates: [UUID: RefreshState] = [:]
 
     private let store: AccountStore
+    private var refreshScheduler: RefreshScheduler?
 
     public init(store: AccountStore = AccountStore()) {
         self.store = store
+        // AppState is created once at launch via @StateObject, regardless of
+        // which scenes (menu bar, windows) are actually visible — so this is
+        // the one reliable place to kick off the initial load and the
+        // recurring background refresh.
+        Task { [weak self] in
+            await self?.loadAccounts()
+            await self?.refreshAll()
+            self?.startAutoRefresh()
+        }
+    }
+
+    public func startAutoRefresh(intervalSeconds: TimeInterval? = nil) {
+        guard refreshScheduler == nil else { return }
+        let interval = intervalSeconds ?? AppConfigStore().load().refreshIntervalSeconds
+        let scheduler = RefreshScheduler(intervalSeconds: interval) { [weak self] in
+            await self?.refreshAll()
+        }
+        scheduler.start()
+        refreshScheduler = scheduler
     }
 
     /// Highest usage percentage across all accounts, for the menu bar's at-a-glance label.

@@ -37,9 +37,5 @@ struct MainWindowView: View {
                 }
             }
         }
-        .task {
-            await appState.loadAccounts()
-            await appState.refreshAll()
-        }
     }
 }
