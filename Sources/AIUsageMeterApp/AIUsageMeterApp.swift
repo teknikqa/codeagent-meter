@@ -16,6 +16,11 @@ struct AIUsageMeterApp: App {
             Label(menuBarLabelText, systemImage: "gauge.with.dots.needle.67percent")
         }
 
+        WindowGroup(id: "main") {
+            MainWindowView()
+                .environmentObject(appState)
+        }
+
         WindowGroup(id: "add-account") {
             AddAccountView()
                 .environmentObject(appState)
