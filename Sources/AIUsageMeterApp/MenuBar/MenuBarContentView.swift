@@ -24,12 +24,12 @@ struct MenuBarContentView: View {
 
             Button("Open ai-usage-meter") {
                 openWindow(id: "main")
-                NSApplication.shared.activate(ignoringOtherApps: true)
+                activateAndFocusNewestWindow()
             }
 
             Button("Add Account…") {
                 openWindow(id: "add-account")
-                NSApplication.shared.activate(ignoringOtherApps: true)
+                activateAndFocusNewestWindow()
             }
 
             Divider()
@@ -40,5 +40,17 @@ struct MenuBarContentView: View {
         }
         .padding(8)
         .frame(minWidth: 260)
+    }
+
+    /// `openWindow` schedules window creation asynchronously, so activating
+    /// immediately can race the window not existing yet and being ordered
+    /// behind other apps. Defer slightly, then explicitly order the new
+    /// window front — activation alone isn't reliable for windows opened
+    /// from a MenuBarExtra.
+    private func activateAndFocusNewestWindow() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            NSApplication.shared.activate(ignoringOtherApps: true)
+            NSApplication.shared.windows.last { $0.isVisible && $0.canBecomeKey }?.makeKeyAndOrderFront(nil)
+        }
     }
 }

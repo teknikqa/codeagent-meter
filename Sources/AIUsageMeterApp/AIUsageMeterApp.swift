@@ -3,6 +3,7 @@ import AIUsageMeterCore
 
 @main
 struct AIUsageMeterApp: App {
+    @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
     @StateObject private var appState = AppState()
 
     var body: some Scene {
