@@ -1,0 +1,14 @@
+{
+  "name": "ai-usage-meter",
+  "private": true,
+  "description": "Commit-lint and release tooling for the ai-usage-meter macOS app (the app itself is a Swift package).",
+  "devDependencies": {
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "conventional-changelog-cli": "^5.0.0",
+    "husky": "^9.1.6"
+  },
+  "scripts": {
+    "prepare": "husky"
+  }
+}
