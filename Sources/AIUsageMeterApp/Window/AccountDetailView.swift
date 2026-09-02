@@ -32,8 +32,8 @@ struct AccountDetailView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                if let planLabel = snapshot.planLabel {
-                    Text(planLabel)
+                if let detailLabel = snapshot.detailLabel {
+                    Text(detailLabel)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

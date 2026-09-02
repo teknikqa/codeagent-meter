@@ -41,7 +41,7 @@ public struct ClaudeOAuthClient: Sendable {
         return UsageSnapshot(
             percentUsed: usage.resolvedPercentUsed,
             resetsAt: usage.resolvedResetsAt,
-            planLabel: profile?.account?.planLabel
+            detailLabel: profile?.emailAddress
         )
     }
 
@@ -129,8 +129,14 @@ public struct ClaudeOAuthClient: Sendable {
 
     private func fetchJSON<T: Decodable>(_ type: T.Type, url: URL, accessToken: String) async throws -> T {
         var request = URLRequest(url: url)
+        request.timeoutInterval = 30
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        // The OAuth usage endpoint currently requires this beta header, and
+        // responds most reliably to a Claude-Code-shaped User-Agent.
         request.setValue("oauth-2025-04-20", forHTTPHeaderField: "anthropic-beta")
+        request.setValue("claude-code/2.1.0", forHTTPHeaderField: "User-Agent")
 
         let (data, response) = try await urlSession.data(for: request)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {

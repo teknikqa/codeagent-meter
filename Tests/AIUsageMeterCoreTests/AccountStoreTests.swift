@@ -30,7 +30,7 @@ final class AccountStoreTests: XCTestCase {
 
     func testAddAccountPersistsAcrossInstances() async throws {
         let configStore = makeTempConfigStore()
-        let provider = StubUsageProvider(result: .success(UsageSnapshot(percentUsed: 42, resetsAt: nil, planLabel: nil)))
+        let provider = StubUsageProvider(result: .success(UsageSnapshot(percentUsed: 42, resetsAt: nil, detailLabel: nil)))
         let account = makeAccount()
 
         let store = AccountStore(configStore: configStore, provider: provider)
@@ -43,7 +43,7 @@ final class AccountStoreTests: XCTestCase {
 
     func testRefreshAllUpdatesLastRefreshedOnSuccess() async throws {
         let configStore = makeTempConfigStore()
-        let provider = StubUsageProvider(result: .success(UsageSnapshot(percentUsed: 10, resetsAt: nil, planLabel: nil)))
+        let provider = StubUsageProvider(result: .success(UsageSnapshot(percentUsed: 10, resetsAt: nil, detailLabel: nil)))
         let account = makeAccount()
 
         let store = AccountStore(configStore: configStore, provider: provider)
@@ -77,7 +77,7 @@ final class AccountStoreTests: XCTestCase {
 
             func fetchUsage(for account: ClaudeAccount) async throws -> UsageSnapshot {
                 if account.id == badID { throw StubError.boom }
-                return UsageSnapshot(percentUsed: 5, resetsAt: nil, planLabel: nil)
+                return UsageSnapshot(percentUsed: 5, resetsAt: nil, detailLabel: nil)
             }
         }
 
@@ -98,7 +98,7 @@ final class AccountStoreTests: XCTestCase {
 
     func testRemoveAccount() async throws {
         let configStore = makeTempConfigStore()
-        let provider = StubUsageProvider(result: .success(UsageSnapshot(percentUsed: 1, resetsAt: nil, planLabel: nil)))
+        let provider = StubUsageProvider(result: .success(UsageSnapshot(percentUsed: 1, resetsAt: nil, detailLabel: nil)))
         let account = makeAccount()
 
         let store = AccountStore(configStore: configStore, provider: provider)

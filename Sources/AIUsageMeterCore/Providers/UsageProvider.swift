@@ -3,18 +3,18 @@ import Foundation
 public struct UsageSnapshot: Equatable, Sendable {
     public let percentUsed: Double?
     public let resetsAt: Date?
-    public let planLabel: String?
+    public let detailLabel: String?
     public let raw: [String: String]
 
     public init(
         percentUsed: Double?,
         resetsAt: Date?,
-        planLabel: String?,
+        detailLabel: String?,
         raw: [String: String] = [:]
     ) {
         self.percentUsed = percentUsed
         self.resetsAt = resetsAt
-        self.planLabel = planLabel
+        self.detailLabel = detailLabel
         self.raw = raw
     }
 }
