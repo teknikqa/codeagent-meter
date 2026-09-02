@@ -1,8 +1,10 @@
 import Foundation
 
 public enum ClaudeCLICredentialError: Error, Equatable {
-    case notFound
     case malformedData
+    /// Wraps the specific Keychain/file failure so callers (and diagnostics)
+    /// can see the real cause instead of a generic "not found".
+    case underlying(String)
 }
 
 public struct ClaudeCLICredentials: Sendable, Equatable {
@@ -26,13 +28,17 @@ public struct ClaudeCLICredentialReader: Sendable {
     public init() {}
 
     public func readCredentials() throws -> ClaudeCLICredentials {
-        if let data = try? KeychainStore.readFirstData(service: Self.keychainService) {
+        do {
+            let data = try KeychainStore.readFirstData(service: Self.keychainService)
             return try Self.decode(data)
+        } catch let keychainError as KeychainError {
+            guard let fileData = try? Data(contentsOf: Self.fileFallbackURL) else {
+                // Neither source worked — surface the Keychain failure, since
+                // it's the primary path and the more informative of the two.
+                throw ClaudeCLICredentialError.underlying(String(describing: keychainError))
+            }
+            return try Self.decode(fileData)
         }
-        guard let fileData = try? Data(contentsOf: Self.fileFallbackURL) else {
-            throw ClaudeCLICredentialError.notFound
-        }
-        return try Self.decode(fileData)
     }
 
     /// Matches the shape of Claude Code's own credential storage:
