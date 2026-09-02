@@ -29,7 +29,7 @@ struct AddAccountView: View {
             .pickerStyle(.segmented)
             .labelsHidden()
 
-            TextField("Label (e.g. Work, Personal)", text: $label)
+            TextField("Label (optional, e.g. Work, Personal)", text: $label)
                 .textFieldStyle(.roundedBorder)
 
             switch mode {
@@ -40,7 +40,7 @@ struct AddAccountView: View {
                 Button("Add Account") {
                     addCLIAccount()
                 }
-                .disabled(isBusy || label.isEmpty)
+                .disabled(isBusy)
             case .cookie:
                 PasteCookieView(onSubmit: addCookieAccount, isBusy: isBusy)
             }
@@ -63,12 +63,13 @@ struct AddAccountView: View {
             do {
                 _ = try ClaudeCLICredentialReader().readCredentials()
                 let id = UUID()
-                let account = ClaudeAccount(id: id, label: label, authKind: .cliKeychain, keychainKey: id.uuidString)
+                let resolvedLabel = label.isEmpty ? "Claude Code CLI" : label
+                let account = ClaudeAccount(id: id, label: resolvedLabel, authKind: .cliKeychain, keychainKey: id.uuidString)
                 try await appState.addAccount(account)
                 await appState.refreshAll()
                 dismissWindow(id: "add-account")
             } catch {
-                errorMessage = "Couldn't find a Claude Code CLI login on this Mac."
+                errorMessage = "Couldn't read the Claude Code CLI login: \(error)"
             }
         }
     }
@@ -95,7 +96,7 @@ struct AddAccountView: View {
                 await appState.refreshAll()
                 dismissWindow(id: "add-account")
             } catch {
-                errorMessage = "That session cookie didn't work — double-check you copied the full sessionKey value."
+                errorMessage = "That session cookie didn't work: \(error)"
             }
         }
     }
