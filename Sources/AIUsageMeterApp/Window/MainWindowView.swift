@@ -15,7 +15,11 @@ struct MainWindowView: View {
                 )
             } else {
                 List(appState.accounts) { account in
-                    AccountDetailView(account: account, state: appState.accountStates[account.id] ?? .idle)
+                    AccountDetailView(
+                        account: account,
+                        state: appState.accountStates[account.id] ?? .idle,
+                        onRemove: { Task { try? await appState.removeAccount(id: account.id) } }
+                    )
                 }
             }
         }
