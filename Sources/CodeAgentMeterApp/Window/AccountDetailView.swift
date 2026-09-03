@@ -44,14 +44,13 @@ struct AccountDetailView: View {
             case .loading:
                 ProgressView()
             case .success(let snapshot):
-                if let percent = snapshot.percentUsed {
-                    ProgressView(value: min(max(percent, 0), 100), total: 100)
-                    Text("\(Int(percent))% used")
-                }
-                if let resetsAt = snapshot.resetsAt {
-                    Text("Resets \(resetsAt.formatted(.relative(presentation: .named)))")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                if snapshot.percentUsed != nil || snapshot.weeklyPercentUsed != nil {
+                    if let percent = snapshot.percentUsed {
+                        usageRow(title: "Session", percent: percent, resetsAt: snapshot.resetsAt)
+                    }
+                    if let weeklyPercent = snapshot.weeklyPercentUsed {
+                        usageRow(title: "Weekly", percent: weeklyPercent, resetsAt: snapshot.weeklyResetsAt)
+                    }
                 }
                 if let detailLabel = snapshot.detailLabel {
                     Text(detailLabel)
@@ -89,6 +88,27 @@ struct AccountDetailView: View {
                 }
             }
             Button("Cancel", role: .cancel) {}
+        }
+    }
+
+    @ViewBuilder
+    private func usageRow(title: String, percent: Double, resetsAt: Date?) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Text(title)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text("\(Int(percent))%")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            ProgressView(value: min(max(percent, 0), 100), total: 100)
+            if let resetsAt {
+                Text("Resets \(resetsAt.formatted(.relative(presentation: .named)))")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
         }
     }
 

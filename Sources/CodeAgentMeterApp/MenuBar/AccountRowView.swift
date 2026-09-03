@@ -18,6 +18,18 @@ struct AccountRowView: View {
             if case .success(let snapshot) = state, let percent = snapshot.percentUsed {
                 ProgressView(value: min(max(percent, 0), 100), total: 100)
             }
+            if case .success(let snapshot) = state, let weeklyPercent = snapshot.weeklyPercentUsed {
+                HStack {
+                    Text("Weekly")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(weeklyStatusText(percent: weeklyPercent, resetsAt: snapshot.weeklyResetsAt))
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                ProgressView(value: min(max(weeklyPercent, 0), 100), total: 100)
+            }
         }
     }
 
@@ -34,5 +46,10 @@ struct AccountRowView: View {
         case .failure(let message):
             return message
         }
+    }
+
+    private func weeklyStatusText(percent: Double, resetsAt: Date?) -> String {
+        let resets = resetsAt.map { " · resets \($0.formatted(.relative(presentation: .named)))" } ?? ""
+        return "\(Int(percent))%\(resets)"
     }
 }

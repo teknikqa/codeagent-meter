@@ -33,19 +33,12 @@ public struct ClaudeCookieClient: Sendable {
             sessionKey: sessionKey
         )
 
-        var raw: [String: String] = [:]
-        if let sevenDayUtilization = usage.sevenDay.utilization {
-            raw["sevenDayUtilization"] = String(sevenDayUtilization)
-        }
-        if let sevenDayResetsAt = usage.sevenDay.resetsAt {
-            raw["sevenDayResetsAt"] = sevenDayResetsAt
-        }
-
         return UsageSnapshot(
             percentUsed: usage.fiveHour.utilization,
             resetsAt: usage.fiveHour.resolvedResetsAt,
-            detailLabel: nil,
-            raw: raw
+            weeklyPercentUsed: usage.sevenDay.utilization,
+            weeklyResetsAt: usage.sevenDay.resolvedResetsAt,
+            detailLabel: nil
         )
     }
 
