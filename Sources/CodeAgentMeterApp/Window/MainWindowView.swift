@@ -14,13 +14,17 @@ struct MainWindowView: View {
                     description: Text("Add a Claude account to start tracking usage.")
                 )
             } else {
-                List(appState.accounts) { account in
-                    AccountDetailView(
-                        account: account,
-                        state: appState.accountStates[account.id] ?? .idle,
-                        onRename: { newLabel in Task { try? await appState.renameAccount(id: account.id, label: newLabel) } },
-                        onRemove: { Task { try? await appState.removeAccount(id: account.id) } }
-                    )
+                List {
+                    Section(ClaudeProvider.displayName) {
+                        ForEach(appState.accounts) { account in
+                            AccountDetailView(
+                                account: account,
+                                state: appState.accountStates[account.id] ?? .idle,
+                                onRename: { newLabel in Task { try? await appState.renameAccount(id: account.id, label: newLabel) } },
+                                onRemove: { Task { try? await appState.removeAccount(id: account.id) } }
+                            )
+                        }
+                    }
                 }
             }
         }
