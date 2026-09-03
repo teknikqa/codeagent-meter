@@ -41,6 +41,36 @@ final class AccountStoreTests: XCTestCase {
         XCTAssertEqual(accounts.map(\.id), [account.id])
     }
 
+    func testRenameAccountPersistsAcrossInstances() async throws {
+        let configStore = makeTempConfigStore()
+        let provider = StubUsageProvider(result: .success(UsageSnapshot(percentUsed: 42, resetsAt: nil, detailLabel: nil)))
+        let account = makeAccount(label: "Untitled")
+
+        let store = AccountStore(configStore: configStore, provider: provider)
+        try await store.addAccount(account)
+        try await store.renameAccount(id: account.id, label: "Work")
+
+        let accounts = await store.accounts
+        XCTAssertEqual(accounts.first?.label, "Work")
+
+        let reloaded = AccountStore(configStore: configStore, provider: provider)
+        let reloadedAccounts = await reloaded.accounts
+        XCTAssertEqual(reloadedAccounts.first?.label, "Work")
+    }
+
+    func testRenameAccountIgnoresUnknownId() async throws {
+        let configStore = makeTempConfigStore()
+        let provider = StubUsageProvider(result: .success(UsageSnapshot(percentUsed: 42, resetsAt: nil, detailLabel: nil)))
+        let account = makeAccount(label: "Untitled")
+
+        let store = AccountStore(configStore: configStore, provider: provider)
+        try await store.addAccount(account)
+        try await store.renameAccount(id: UUID(), label: "Should Not Apply")
+
+        let accounts = await store.accounts
+        XCTAssertEqual(accounts.first?.label, "Untitled")
+    }
+
     func testRefreshAllUpdatesLastRefreshedOnSuccess() async throws {
         let configStore = makeTempConfigStore()
         let provider = StubUsageProvider(result: .success(UsageSnapshot(percentUsed: 10, resetsAt: nil, detailLabel: nil)))

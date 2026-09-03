@@ -22,6 +22,12 @@ public actor AccountStore {
         try persist()
     }
 
+    public func renameAccount(id: UUID, label: String) throws {
+        guard let index = accounts.firstIndex(where: { $0.id == id }) else { return }
+        accounts[index].label = label
+        try persist()
+    }
+
     public func removeAccount(id: UUID) throws {
         guard let account = accounts.first(where: { $0.id == id }) else { return }
         accounts.removeAll { $0.id == id }

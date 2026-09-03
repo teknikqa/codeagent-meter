@@ -78,6 +78,11 @@ public final class AppState: ObservableObject {
         accounts = await store.accounts
     }
 
+    public func renameAccount(id: UUID, label: String) async throws {
+        try await store.renameAccount(id: id, label: label)
+        accounts = await store.accounts
+    }
+
     public func removeAccount(id: UUID) async throws {
         try await store.removeAccount(id: id)
         accounts = await store.accounts
