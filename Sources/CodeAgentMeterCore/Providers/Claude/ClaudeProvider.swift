@@ -9,7 +9,7 @@ public enum ClaudeProviderError: Error {
 /// on how a given account authenticates.
 public struct ClaudeProvider: UsageProvider {
     public static let vendorID = "claude"
-    public static let displayName = "Claude"
+    public static let displayName = "Claude Code"
 
     private let oauthClient: ClaudeOAuthClient
     private let cookieClient: ClaudeCookieClient
