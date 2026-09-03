@@ -42,6 +42,8 @@ public struct ClaudeOAuthClient: Sendable {
         return UsageSnapshot(
             percentUsed: usage.resolvedPercentUsed,
             resetsAt: usage.resolvedResetsAt,
+            weeklyPercentUsed: usage.sevenDay?.utilization,
+            weeklyResetsAt: usage.sevenDay?.resolvedResetsAt,
             detailLabel: profile?.emailAddress
         )
     }
