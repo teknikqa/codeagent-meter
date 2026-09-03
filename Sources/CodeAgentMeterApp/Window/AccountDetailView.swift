@@ -4,15 +4,26 @@ import CodeAgentMeterCore
 struct AccountDetailView: View {
     let account: ClaudeAccount
     let state: AppState.RefreshState
+    let onRename: (String) -> Void
     let onRemove: () -> Void
 
     @State private var showRemoveConfirmation = false
+    @State private var showRenameAlert = false
+    @State private var renameDraft = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(account.label)
                     .font(.headline)
+                Button {
+                    renameDraft = account.label
+                    showRenameAlert = true
+                } label: {
+                    Image(systemName: "pencil")
+                }
+                .buttonStyle(.borderless)
+                .help("Rename Account")
                 Spacer()
                 Text(authKindLabel)
                     .font(.caption)
@@ -68,6 +79,16 @@ struct AccountDetailView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("You'll need to re-add it to track its usage again.")
+        }
+        .alert("Rename Account", isPresented: $showRenameAlert) {
+            TextField("Label", text: $renameDraft)
+            Button("Save") {
+                let trimmed = renameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmed.isEmpty {
+                    onRename(trimmed)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
         }
     }
 

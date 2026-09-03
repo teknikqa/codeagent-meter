@@ -18,6 +18,7 @@ struct MainWindowView: View {
                     AccountDetailView(
                         account: account,
                         state: appState.accountStates[account.id] ?? .idle,
+                        onRename: { newLabel in Task { try? await appState.renameAccount(id: account.id, label: newLabel) } },
                         onRemove: { Task { try? await appState.removeAccount(id: account.id) } }
                     )
                 }
