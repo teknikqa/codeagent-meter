@@ -41,7 +41,7 @@ Add an account from the menu bar dropdown → **Add Account…**.
 
 Reads the ChatGPT login Codex CLI stores in `$CODEX_HOME/auth.json` (default `~/.codex`) and calls the undocumented `chatgpt.com/backend-api/wham/usage` endpoint. Each Codex account is one `CODEX_HOME` directory, so separate profiles (e.g. `~/.codex-work`) are separate accounts.
 
-The app never refreshes Codex tokens itself — OpenAI rotates refresh tokens on use, which would log the CLI out. It re-reads `auth.json` on every refresh; if the token has expired, run `codex` once to let the CLI refresh it.
+The app never refreshes Codex tokens itself — OpenAI rotates refresh tokens on use, which would log the CLI out. It re-reads `auth.json` on every refresh. When OpenAI rejects the stored access token, the app runs `codex app-server` for that `CODEX_HOME` and reads usage over its JSON-RPC interface; the CLI refreshes its own token along the way. If that fails too, the account shows "Needs re-auth" until you run `codex login`.
 
 ## Architecture
 

@@ -100,6 +100,7 @@ public final class AppState: ObservableObject {
     private static func describe(_ error: Error) -> String {
         if error is ClaudeCookieError { return "Needs re-auth" }
         if error is ClaudeOAuthError { return "Needs re-auth" }
+        if case CodexError.cliUnavailable = error { return "Codex CLI unavailable" }
         if error is CodexError { return "Needs re-auth — run codex login" }
         return "Refresh failed"
     }
