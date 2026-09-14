@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/teknikqa/codeagent-meter/compare/v1.2.0...v1.3.0) (2026-09-14)
+
+
+### Features
+
+* add Antigravity usage tracking ([#12](https://github.com/teknikqa/codeagent-meter/issues/12)) ([d123017](https://github.com/teknikqa/codeagent-meter/commit/d1230174beb888d9f691be3bf25d4943ae0eb61d))
+
 ## [1.2.0](https://github.com/teknikqa/codeagent-meter/compare/v1.1.0...v1.2.0) (2026-09-14)
 
 
