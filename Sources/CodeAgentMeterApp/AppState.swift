@@ -45,9 +45,17 @@ public final class AppState: ObservableObject {
     /// Highest usage percentage across all accounts, for the menu bar's at-a-glance label.
     public var headlinePercent: Double? {
         accountStates.values.compactMap { state -> Double? in
-            if case .success(let snapshot) = state { return snapshot.percentUsed }
+            if case .success(let snapshot) = state { return snapshot.percentUsed ?? snapshot.weeklyPercentUsed }
             return nil
         }.max()
+    }
+
+    /// Accounts grouped under their vendor, in `ProviderRegistry.vendors` order, empty vendors omitted.
+    public var accountsByVendor: [(displayName: String, accounts: [ClaudeAccount])] {
+        ProviderRegistry.vendors.compactMap { vendor in
+            let matching = accounts.filter { $0.vendorID == vendor.id }
+            return matching.isEmpty ? nil : (vendor.displayName, matching)
+        }
     }
 
     public func loadAccounts() async {
@@ -92,6 +100,7 @@ public final class AppState: ObservableObject {
     private static func describe(_ error: Error) -> String {
         if error is ClaudeCookieError { return "Needs re-auth" }
         if error is ClaudeOAuthError { return "Needs re-auth" }
+        if error is CodexError { return "Needs re-auth — run codex login" }
         return "Refresh failed"
     }
 }

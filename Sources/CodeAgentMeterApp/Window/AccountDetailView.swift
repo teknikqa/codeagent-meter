@@ -117,6 +117,7 @@ struct AccountDetailView: View {
         case .cliKeychain: return "Claude Code CLI"
         case .cookie: return "Session cookie"
         case .adminKey: return "Admin key"
+        case .codexCLI: return "Codex CLI · \(account.codexHome ?? CodexProvider.defaultHome)"
         }
     }
 }

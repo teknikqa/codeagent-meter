@@ -40,7 +40,7 @@ struct AccountRowView: View {
         case .loading:
             return "Refreshing…"
         case .success(let snapshot):
-            guard let percent = snapshot.percentUsed else { return "—" }
+            guard let percent = snapshot.percentUsed else { return snapshot.weeklyPercentUsed == nil ? "—" : "" }
             let resets = snapshot.resetsAt.map { " · resets \($0.formatted(.relative(presentation: .named)))" } ?? ""
             return "\(Int(percent))%\(resets)"
         case .failure(let message):

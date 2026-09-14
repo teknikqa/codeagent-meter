@@ -11,12 +11,14 @@ struct MenuBarContentView: View {
                 Text("No accounts yet")
                     .foregroundStyle(.secondary)
             } else {
-                Text(ClaudeProvider.displayName.uppercased())
-                    .font(.caption2)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.secondary)
-                ForEach(appState.accounts) { account in
-                    AccountRowView(account: account, state: appState.accountStates[account.id] ?? .idle)
+                ForEach(appState.accountsByVendor, id: \.displayName) { group in
+                    Text(group.displayName.uppercased())
+                        .font(.caption2)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
+                    ForEach(group.accounts) { account in
+                        AccountRowView(account: account, state: appState.accountStates[account.id] ?? .idle)
+                    }
                 }
             }
 
