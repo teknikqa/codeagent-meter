@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/teknikqa/codeagent-meter/compare/v1.3.0...v1.4.0) (2026-09-14)
+
+
+### Features
+
+* add Cursor usage tracking ([#14](https://github.com/teknikqa/codeagent-meter/issues/14)) ([71db952](https://github.com/teknikqa/codeagent-meter/commit/71db95209f37caa6d6971d4a29969475e2678485))
+
 ## [1.3.0](https://github.com/teknikqa/codeagent-meter/compare/v1.2.0...v1.3.0) (2026-09-14)
 
 
