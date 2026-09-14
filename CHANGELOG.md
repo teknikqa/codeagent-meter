@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.0](https://github.com/teknikqa/codeagent-meter/compare/v1.1.0...v1.2.0) (2026-09-14)
+
+
+### Features
+
+* add Codex usage tracking ([2f9d747](https://github.com/teknikqa/codeagent-meter/commit/2f9d747f34f03c6df7b8691b237df8552aa17e85))
+* **app:** add account renaming from the full window ([#7](https://github.com/teknikqa/codeagent-meter/issues/7)) ([97256bc](https://github.com/teknikqa/codeagent-meter/commit/97256bc20dfb92aebbcb232172ce7bd5ce4da30d))
+* group accounts under a Claude Code vendor header ([#10](https://github.com/teknikqa/codeagent-meter/issues/10)) ([d00ffa6](https://github.com/teknikqa/codeagent-meter/commit/d00ffa6e37ab72a68bd02b026d80796959c16f4a))
+* show weekly (7-day) usage alongside the 5-hour session window ([#9](https://github.com/teknikqa/codeagent-meter/issues/9)) ([b7d8d6f](https://github.com/teknikqa/codeagent-meter/commit/b7d8d6f465b852ed76e81cc5b05b9aa837927415))
+
 ## [1.1.0](https://github.com/teknikqa/ai-usage-meter/compare/v1.0.0...v1.1.0) (2026-09-02)
 
 
