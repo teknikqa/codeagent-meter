@@ -42,6 +42,7 @@ public actor AccountStore {
     private func deleteCredentials(for account: ClaudeAccount) {
         try? KeychainStore(service: ClaudeCookieClient.secretsService).delete(account: account.keychainKey)
         try? KeychainStore(service: ClaudeOAuthClient.tokenCacheService).delete(account: account.keychainKey)
+        try? KeychainStore(service: AntigravityOAuthClient.tokenCacheService).delete(account: account.keychainKey)
     }
 
     /// Refreshes every account concurrently. A failure for one account is

@@ -102,6 +102,7 @@ public final class AppState: ObservableObject {
         if error is ClaudeOAuthError { return "Needs re-auth" }
         if case CodexError.cliUnavailable = error { return "Codex CLI unavailable" }
         if error is CodexError { return "Needs re-auth — run codex login" }
+        if case AntigravityError.notSignedIn = error { return "Open Antigravity or sign in to agy" }
         return "Refresh failed"
     }
 }

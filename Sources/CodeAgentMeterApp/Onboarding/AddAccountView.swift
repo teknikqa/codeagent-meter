@@ -15,6 +15,7 @@ struct AddAccountView: View {
         case cliDetect = "Detect CLI Login"
         case cookie = "Paste Session Cookie"
         case codex = "Codex CLI"
+        case antigravity = "Antigravity"
         var id: String { rawValue }
     }
 
@@ -55,6 +56,14 @@ struct AddAccountView: View {
                     addCodexAccount()
                 }
                 .disabled(isBusy || codexHome.isEmpty)
+            case .antigravity:
+                Text("Reads quota from the running Antigravity app or IDE. When neither is open, falls back to the Google login `agy` stored in Keychain — macOS asks for access the first time.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Button("Add Account") {
+                    addAntigravityAccount()
+                }
+                .disabled(isBusy)
             }
 
             if let errorMessage {
@@ -64,7 +73,7 @@ struct AddAccountView: View {
             }
         }
         .padding(20)
-        .frame(width: 460)
+        .frame(width: 560)
     }
 
     private func addCLIAccount() {
@@ -103,6 +112,24 @@ struct AddAccountView: View {
                 dismissWindow(id: "add-account")
             } catch {
                 errorMessage = "Couldn't read the Codex CLI login at \(codexHome): \(error)"
+            }
+        }
+    }
+
+    private func addAntigravityAccount() {
+        isBusy = true
+        errorMessage = nil
+        Task {
+            defer { isBusy = false }
+            do {
+                let id = UUID()
+                let account = ClaudeAccount(id: id, label: label.isEmpty ? "Antigravity" : label, authKind: .antigravity, keychainKey: id.uuidString)
+                _ = try await AntigravityProvider().fetchUsage(for: account)
+                try await appState.addAccount(account)
+                await appState.refreshAll()
+                dismissWindow(id: "add-account")
+            } catch {
+                errorMessage = "Couldn't read Antigravity usage — open Antigravity or sign in to agy: \(error)"
             }
         }
     }

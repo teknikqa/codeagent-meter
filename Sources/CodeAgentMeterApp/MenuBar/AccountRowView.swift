@@ -2,13 +2,25 @@ import SwiftUI
 import CodeAgentMeterCore
 
 struct AccountRowView: View {
-    let account: ClaudeAccount
+    let title: String
     let state: AppState.RefreshState
 
     var body: some View {
+        if case .success(let snapshot) = state, !snapshot.groups.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(snapshot.groups, id: \.name) { group in
+                    AccountRowView(title: group.name, state: .success(group.snapshot))
+                }
+            }
+        } else {
+            singleRow
+        }
+    }
+
+    private var singleRow: some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack {
-                Text(account.label)
+                Text(title)
                     .fontWeight(.medium)
                 Spacer()
                 Text(statusText)
