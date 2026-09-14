@@ -49,7 +49,7 @@ struct AccountDetailView: View {
                         .font(.subheadline)
                         .fontWeight(.medium)
                     if let percent = group.snapshot.percentUsed {
-                        usageRow(title: "Session", percent: percent, resetsAt: group.snapshot.resetsAt)
+                        usageRow(title: group.snapshot.primaryLabel, percent: percent, resetsAt: group.snapshot.resetsAt)
                     }
                     if let weeklyPercent = group.snapshot.weeklyPercentUsed {
                         usageRow(title: "Weekly", percent: weeklyPercent, resetsAt: group.snapshot.weeklyResetsAt)
@@ -63,7 +63,7 @@ struct AccountDetailView: View {
             case .success(let snapshot):
                 if snapshot.percentUsed != nil || snapshot.weeklyPercentUsed != nil {
                     if let percent = snapshot.percentUsed {
-                        usageRow(title: "Session", percent: percent, resetsAt: snapshot.resetsAt)
+                        usageRow(title: snapshot.primaryLabel, percent: percent, resetsAt: snapshot.resetsAt)
                     }
                     if let weeklyPercent = snapshot.weeklyPercentUsed {
                         usageRow(title: "Weekly", percent: weeklyPercent, resetsAt: snapshot.weeklyResetsAt)
@@ -136,6 +136,7 @@ struct AccountDetailView: View {
         case .adminKey: return "Admin key"
         case .codexCLI: return "Codex CLI · \(account.codexHome ?? CodexProvider.defaultHome)"
         case .antigravity: return "Antigravity app or agy login"
+        case .cursor: return "Cursor app login"
         }
     }
 }

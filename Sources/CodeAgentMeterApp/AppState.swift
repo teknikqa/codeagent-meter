@@ -103,6 +103,7 @@ public final class AppState: ObservableObject {
         if case CodexError.cliUnavailable = error { return "Codex CLI unavailable" }
         if error is CodexError { return "Needs re-auth — run codex login" }
         if case AntigravityError.notSignedIn = error { return "Open Antigravity or sign in to agy" }
+        if case CursorError.notSignedIn = error { return "Sign in to Cursor" }
         return "Refresh failed"
     }
 }

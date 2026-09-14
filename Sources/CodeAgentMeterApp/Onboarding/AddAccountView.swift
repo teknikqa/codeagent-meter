@@ -16,6 +16,7 @@ struct AddAccountView: View {
         case cookie = "Paste Session Cookie"
         case codex = "Codex CLI"
         case antigravity = "Antigravity"
+        case cursor = "Cursor"
         var id: String { rawValue }
     }
 
@@ -64,6 +65,14 @@ struct AddAccountView: View {
                     addAntigravityAccount()
                 }
                 .disabled(isBusy)
+            case .cursor:
+                Text("Reads the login the Cursor app stores locally — no setup needed if you're signed in to Cursor on this Mac.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Button("Add Account") {
+                    addCursorAccount()
+                }
+                .disabled(isBusy)
             }
 
             if let errorMessage {
@@ -73,7 +82,7 @@ struct AddAccountView: View {
             }
         }
         .padding(20)
-        .frame(width: 560)
+        .frame(width: 640)
     }
 
     private func addCLIAccount() {
@@ -130,6 +139,27 @@ struct AddAccountView: View {
                 dismissWindow(id: "add-account")
             } catch {
                 errorMessage = "Couldn't read Antigravity usage — open Antigravity or sign in to agy: \(error)"
+            }
+        }
+    }
+
+    private func addCursorAccount() {
+        isBusy = true
+        errorMessage = nil
+        Task {
+            defer { isBusy = false }
+            do {
+                let id = UUID()
+                var account = ClaudeAccount(id: id, label: label, authKind: .cursor, keychainKey: id.uuidString)
+                let snapshot = try await CursorProvider().fetchUsage(for: account)
+                if label.isEmpty {
+                    account.label = snapshot.detailLabel?.components(separatedBy: " · ").first ?? "Cursor"
+                }
+                try await appState.addAccount(account)
+                await appState.refreshAll()
+                dismissWindow(id: "add-account")
+            } catch {
+                errorMessage = "Couldn't read Cursor usage — sign in to Cursor first: \(error)"
             }
         }
     }
