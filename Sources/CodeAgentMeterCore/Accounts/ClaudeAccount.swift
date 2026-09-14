@@ -5,6 +5,7 @@ public enum ClaudeAuthKind: String, Codable, Sendable {
     case cookie
     case adminKey
     case codexCLI
+    case antigravity
 }
 
 public struct ClaudeAccount: Identifiable, Codable, Equatable, Sendable {
@@ -39,6 +40,10 @@ public struct ClaudeAccount: Identifiable, Codable, Equatable, Sendable {
     }
 
     public var vendorID: String {
-        authKind == .codexCLI ? CodexProvider.vendorID : ClaudeProvider.vendorID
+        switch authKind {
+        case .codexCLI: return CodexProvider.vendorID
+        case .antigravity: return AntigravityProvider.vendorID
+        case .cliKeychain, .cookie, .adminKey: return ClaudeProvider.vendorID
+        }
     }
 }
