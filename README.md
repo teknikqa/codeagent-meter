@@ -1,6 +1,6 @@
 # CodeAgent Meter
 
-A native macOS menu bar app for tracking usage/quota across AI coding agents. Tracks Claude Code and Codex, with multiple accounts per vendor.
+A native macOS menu bar app for tracking usage/quota across AI coding agents. Tracks Claude Code, Codex, and Antigravity, with multiple accounts per vendor.
 
 Multi-provider, multi-account, Keychain-based auth, in a simple menu bar package.
 
@@ -42,6 +42,15 @@ Add an account from the menu bar dropdown → **Add Account…**.
 Reads the ChatGPT login Codex CLI stores in `$CODEX_HOME/auth.json` (default `~/.codex`) and calls the undocumented `chatgpt.com/backend-api/wham/usage` endpoint. Each Codex account is one `CODEX_HOME` directory, so separate profiles (e.g. `~/.codex-work`) are separate accounts.
 
 The app never refreshes Codex tokens itself — OpenAI rotates refresh tokens on use, which would log the CLI out. It re-reads `auth.json` on every refresh. When OpenAI rejects the stored access token, the app runs `codex app-server` for that `CODEX_HOME` and reads usage over its JSON-RPC interface; the CLI refreshes its own token along the way. If that fails too, the account shows "Needs re-auth" until you run `codex login`.
+
+## How Antigravity auth works
+
+Antigravity meters two quota groups, Gemini and Claude + GPT, each with a 5-hour and a weekly limit; each group gets its own row. Usage comes from two sources, freshest first:
+
+1. **Running Antigravity app or IDE**: the local language server's CSRF token comes from its command line (`ps`), its port from `lsof`, and quota from its `RetrieveUserQuotaSummary` endpoint. No stored credentials involved.
+2. **`agy` login fallback**: when neither is open, reads the Google login `agy` stores in Keychain (service `gemini`, account `antigravity`) and calls Google's `loadCodeAssist` and `retrieveUserQuotaSummary`. Expired access tokens are refreshed with the OAuth client embedded in the installed `agy` binary; Google refresh tokens don't rotate, so `agy`'s login keeps working. Refreshed tokens are cached in **this app's own** Keychain item — `agy`'s is never written to.
+
+The fallback triggers a macOS Keychain prompt on first use; choose **Always Allow** or it asks again on every refresh while Antigravity is closed.
 
 ## Architecture
 
