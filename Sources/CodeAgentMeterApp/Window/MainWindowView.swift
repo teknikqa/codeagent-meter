@@ -11,12 +11,13 @@ struct MainWindowView: View {
                 ContentUnavailableView(
                     "No Accounts Yet",
                     systemImage: "person.crop.circle.badge.plus",
-                    description: Text("Add a Claude account to start tracking usage.")
+                    description: Text("Add a Claude or Codex account to start tracking usage.")
                 )
             } else {
                 List {
-                    Section(ClaudeProvider.displayName) {
-                        ForEach(appState.accounts) { account in
+                    ForEach(appState.accountsByVendor, id: \.displayName) { group in
+                    Section(group.displayName) {
+                        ForEach(group.accounts) { account in
                             AccountDetailView(
                                 account: account,
                                 state: appState.accountStates[account.id] ?? .idle,
@@ -24,6 +25,7 @@ struct MainWindowView: View {
                                 onRemove: { Task { try? await appState.removeAccount(id: account.id) } }
                             )
                         }
+                    }
                     }
                 }
             }

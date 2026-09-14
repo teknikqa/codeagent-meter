@@ -4,13 +4,14 @@ import Foundation
 /// accounts independently — one account's failure never blocks another's.
 public actor AccountStore {
     private let configStore: AppConfigStore
-    private let provider: any UsageProvider
+    /// Overrides per-account provider routing; tests inject a stub here.
+    private let provider: (any UsageProvider)?
 
     public private(set) var accounts: [ClaudeAccount]
 
     public init(
         configStore: AppConfigStore = AppConfigStore(),
-        provider: any UsageProvider = ProviderRegistry.claude
+        provider: (any UsageProvider)? = nil
     ) {
         self.configStore = configStore
         self.provider = provider
@@ -53,7 +54,7 @@ public actor AccountStore {
             for account in currentAccounts {
                 group.addTask {
                     do {
-                        let snapshot = try await self.provider.fetchUsage(for: account)
+                        let snapshot = try await (self.provider ?? ProviderRegistry.provider(for: account)).fetchUsage(for: account)
                         return (account.id, .success(snapshot))
                     } catch {
                         return (account.id, .failure(error))

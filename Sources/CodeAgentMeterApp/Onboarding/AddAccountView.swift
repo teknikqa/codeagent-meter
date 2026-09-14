@@ -7,18 +7,20 @@ struct AddAccountView: View {
 
     @State private var mode: Mode = .cliDetect
     @State private var label = ""
+    @State private var codexHome = CodexProvider.defaultHome
     @State private var isBusy = false
     @State private var errorMessage: String?
 
     private enum Mode: String, CaseIterable, Identifiable {
         case cliDetect = "Detect CLI Login"
         case cookie = "Paste Session Cookie"
+        case codex = "Codex CLI"
         var id: String { rawValue }
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Add Claude Account")
+            Text("Add Account")
                 .font(.headline)
 
             Picker("", selection: $mode) {
@@ -43,6 +45,16 @@ struct AddAccountView: View {
                 .disabled(isBusy)
             case .cookie:
                 PasteCookieView(onSubmit: addCookieAccount, isBusy: isBusy)
+            case .codex:
+                Text("Reads the login Codex CLI stored in `auth.json` under this directory. Use a different path (e.g. `~/.codex-work`) for another `CODEX_HOME`.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                TextField("Codex home", text: $codexHome)
+                    .textFieldStyle(.roundedBorder)
+                Button("Add Account") {
+                    addCodexAccount()
+                }
+                .disabled(isBusy || codexHome.isEmpty)
             }
 
             if let errorMessage {
@@ -52,7 +64,7 @@ struct AddAccountView: View {
             }
         }
         .padding(20)
-        .frame(width: 380)
+        .frame(width: 460)
     }
 
     private func addCLIAccount() {
@@ -70,6 +82,27 @@ struct AddAccountView: View {
                 dismissWindow(id: "add-account")
             } catch {
                 errorMessage = "Couldn't read the Claude Code CLI login: \(error)"
+            }
+        }
+    }
+
+    private func addCodexAccount() {
+        isBusy = true
+        errorMessage = nil
+        Task {
+            defer { isBusy = false }
+            do {
+                let id = UUID()
+                var account = ClaudeAccount(id: id, label: label, authKind: .codexCLI, keychainKey: id.uuidString, codexHome: codexHome)
+                let snapshot = try await CodexProvider().fetchUsage(for: account)
+                if label.isEmpty {
+                    account.label = snapshot.detailLabel?.components(separatedBy: " · ").first ?? "Codex CLI"
+                }
+                try await appState.addAccount(account)
+                await appState.refreshAll()
+                dismissWindow(id: "add-account")
+            } catch {
+                errorMessage = "Couldn't read the Codex CLI login at \(codexHome): \(error)"
             }
         }
     }

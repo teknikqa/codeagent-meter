@@ -1,6 +1,6 @@
 # CodeAgent Meter
 
-A native macOS menu bar app for tracking usage/quota across AI coding agents. MVP scope is Claude only, with multiple accounts supported.
+A native macOS menu bar app for tracking usage/quota across AI coding agents. Tracks Claude Code and Codex, with multiple accounts per vendor.
 
 Multi-provider, multi-account, Keychain-based auth, in a simple menu bar package.
 
@@ -37,12 +37,18 @@ Anthropic doesn't publish a usage API for personal accounts, so this app borrows
 
 Add an account from the menu bar dropdown → **Add Account…**.
 
+## How Codex auth works
+
+Reads the ChatGPT login Codex CLI stores in `$CODEX_HOME/auth.json` (default `~/.codex`) and calls the undocumented `chatgpt.com/backend-api/wham/usage` endpoint. Each Codex account is one `CODEX_HOME` directory, so separate profiles (e.g. `~/.codex-work`) are separate accounts.
+
+The app never refreshes Codex tokens itself — OpenAI rotates refresh tokens on use, which would log the CLI out. It re-reads `auth.json` on every refresh. When OpenAI rejects the stored access token, the app runs `codex app-server` for that `CODEX_HOME` and reads usage over its JSON-RPC interface; the CLI refreshes its own token along the way. If that fails too, the account shows "Needs re-auth" until you run `codex login`.
+
 ## Architecture
 
 - `Sources/CodeAgentMeterCore` — vendor-agnostic logic: the `UsageProvider` protocol, Claude's provider implementation (OAuth + cookie clients), Keychain wrapper, account persistence, refresh scheduling. No SwiftUI/AppKit imports.
 - `Sources/CodeAgentMeterApp` — the SwiftUI app: `MenuBarExtra` scene, a full `WindowGroup` scene showing the same accounts with more detail, and onboarding UI. `AppState` is the single `ObservableObject` both scenes read from, so they can never disagree.
 
-Adding a second provider (Codex, Gemini, Copilot) means a new `Providers/<Name>/` module conforming to `UsageProvider`, registered in `ProviderRegistry` — not built yet, this is MVP's extension seam, not a shipped feature.
+Adding another provider (Gemini, Copilot) means a new `Providers/<Name>/` module conforming to `UsageProvider`, registered in `ProviderRegistry` — see `Providers/Codex/` for a minimal example.
 
 ## Non-goals for MVP
 
