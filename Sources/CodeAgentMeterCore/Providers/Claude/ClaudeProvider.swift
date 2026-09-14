@@ -33,7 +33,7 @@ public struct ClaudeProvider: UsageProvider {
             // distinct, documented endpoint pair — not built for MVP since no
             // onboarding flow creates .adminKey accounts yet.
             throw ClaudeProviderError.adminKeyNotSupported
-        case .codexCLI, .antigravity:
+        case .codexCLI, .antigravity, .cursor:
             return try await ProviderRegistry.provider(for: account).fetchUsage(for: account)
         }
     }

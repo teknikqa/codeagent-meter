@@ -13,6 +13,9 @@ public struct UsageSnapshot: Equatable, Sendable {
     /// and Claude + GPT groups), each shown as its own row. Empty for vendors
     /// with a single pool.
     public let groups: [UsageGroup]
+    /// Name of the primary window, for vendors whose primary limit isn't a
+    /// rolling session (e.g. Cursor's monthly billing cycle).
+    public let primaryLabel: String
 
     public init(
         percentUsed: Double?,
@@ -21,7 +24,8 @@ public struct UsageSnapshot: Equatable, Sendable {
         weeklyResetsAt: Date? = nil,
         detailLabel: String?,
         raw: [String: String] = [:],
-        groups: [UsageGroup] = []
+        groups: [UsageGroup] = [],
+        primaryLabel: String = "Session"
     ) {
         self.percentUsed = percentUsed
         self.resetsAt = resetsAt
@@ -30,6 +34,7 @@ public struct UsageSnapshot: Equatable, Sendable {
         self.detailLabel = detailLabel
         self.raw = raw
         self.groups = groups
+        self.primaryLabel = primaryLabel
     }
 }
 
