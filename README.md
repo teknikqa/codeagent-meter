@@ -1,6 +1,6 @@
 # CodeAgent Meter
 
-A native macOS menu bar app for tracking usage/quota across AI coding agents. Tracks Claude Code, Codex, and Antigravity, with multiple accounts per vendor.
+A native macOS menu bar app for tracking usage/quota across AI coding agents. Tracks Claude Code, Codex, Antigravity, and Cursor, with multiple accounts per vendor.
 
 Multi-provider, multi-account, Keychain-based auth, in a simple menu bar package.
 
@@ -52,12 +52,16 @@ Antigravity meters two quota groups, Gemini and Claude + GPT, each with a 5-hour
 
 The fallback triggers a macOS Keychain prompt on first use; choose **Always Allow** or it asks again on every refresh while Antigravity is closed.
 
+## How Cursor auth works
+
+Reads the login the Cursor app keeps in its local settings database (`~/Library/Application Support/Cursor/User/globalStorage/state.vscdb`, opened read-only) and calls the dashboard API behind Cursor's settings page (`api2.cursor.sh` `GetCurrentPeriodUsage` and `GetPlanInfo`). Cursor meters one pool per billing cycle, shown as a **Monthly** bar that resets at the cycle end. The database is re-read on every refresh, so signing in again in Cursor needs no change here.
+
 ## Architecture
 
 - `Sources/CodeAgentMeterCore` — vendor-agnostic logic: the `UsageProvider` protocol, Claude's provider implementation (OAuth + cookie clients), Keychain wrapper, account persistence, refresh scheduling. No SwiftUI/AppKit imports.
 - `Sources/CodeAgentMeterApp` — the SwiftUI app: `MenuBarExtra` scene, a full `WindowGroup` scene showing the same accounts with more detail, and onboarding UI. `AppState` is the single `ObservableObject` both scenes read from, so they can never disagree.
 
-Adding another provider (Gemini, Copilot) means a new `Providers/<Name>/` module conforming to `UsageProvider`, registered in `ProviderRegistry` — see `Providers/Codex/` for a minimal example.
+Adding another provider (e.g. Copilot) means a new `Providers/<Name>/` module conforming to `UsageProvider`, registered in `ProviderRegistry` — see `Providers/Codex/` for a minimal example.
 
 ## Non-goals for MVP
 
