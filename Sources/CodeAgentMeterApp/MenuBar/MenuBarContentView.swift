@@ -17,7 +17,7 @@ struct MenuBarContentView: View {
                         .fontWeight(.semibold)
                         .foregroundStyle(.secondary)
                     ForEach(group.accounts) { account in
-                        AccountRowView(account: account, state: appState.accountStates[account.id] ?? .idle)
+                        AccountRowView(title: account.label, state: appState.accountStates[account.id] ?? .idle)
                     }
                 }
             }
