@@ -138,6 +138,7 @@ struct AccountDetailView: View {
         case .antigravity: return "Antigravity app or agy login"
         case .cursor: return "Cursor app login"
         case .kiro: return "kiro-cli or Kiro app login"
+        case .devin: return "Devin CLI or Devin app login"
         }
     }
 }

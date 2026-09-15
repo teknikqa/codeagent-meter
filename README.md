@@ -1,6 +1,6 @@
 # CodeAgent Meter
 
-A native macOS menu bar app for tracking usage/quota across AI coding agents. Tracks Claude Code, Codex, Antigravity, Cursor, and Kiro, with multiple accounts per vendor.
+A native macOS menu bar app for tracking usage/quota across AI coding agents. Tracks Claude Code, Codex, Antigravity, Cursor, Kiro, and Devin (formerly Windsurf and Codeium), with multiple accounts per vendor.
 
 Multi-provider, multi-account, Keychain-based auth, in a simple menu bar package.
 
@@ -71,6 +71,11 @@ Every Kiro login type works:
 Organization logins have no default profile, so they need the profile kiro-cli (`state` row `api.codewhisperer.profile`) or the IDE (`profile.json`) saved after sign-in.
 
 Tokens are never refreshed here, since kiro-cli and Kiro own them. When kiro-cli's token has expired, the app runs `kiro-cli chat --no-interactive /usage` once so the CLI refreshes its own token. The IDE refreshes its token only while Kiro is open.
+## How Devin auth works
+
+Devin is the renamed Windsurf (itself renamed from Codeium), so one Devin account covers all three. It reads the API key the Devin CLI stores in `~/.local/share/devin/credentials.toml`, along with the `api_server_url` it signed in against. When the CLI isn't signed in, it falls back to the key in the Devin app's settings database (`~/Library/Application Support/Devin/User/globalStorage/state.vscdb`, key `windsurfAuthStatus`, opened read-only), then a pre-rename Windsurf install's.
+
+It calls `GetUserStatus` on the account's API server (`server.codeium.com` by default), the call the Devin app makes. Current plans show a **Daily** bar and a **Weekly** bar from the daily and weekly quotas. Older plans show a **Monthly** bar from their ACU or prompt-credit pool, resetting at the end of the plan period. Keys are re-read on every refresh, so signing in again needs no change here.
 
 ## Architecture
 

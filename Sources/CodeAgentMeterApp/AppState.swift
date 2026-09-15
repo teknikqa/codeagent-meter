@@ -105,6 +105,7 @@ public final class AppState: ObservableObject {
         if case AntigravityError.notSignedIn = error { return "Open Antigravity or sign in to agy" }
         if case CursorError.notSignedIn = error { return "Sign in to Cursor" }
         if case KiroError.notSignedIn = error { return "Run kiro-cli login or open Kiro" }
+        if case DevinError.notSignedIn = error { return "Run devin auth login or sign in to Devin" }
         return "Refresh failed"
     }
 }

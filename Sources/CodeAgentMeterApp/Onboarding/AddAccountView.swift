@@ -18,6 +18,7 @@ struct AddAccountView: View {
         case antigravity = "Antigravity"
         case cursor = "Cursor"
         case kiro = "Kiro"
+        case devin = "Devin"
         var id: String { rawValue }
     }
 
@@ -82,6 +83,14 @@ struct AddAccountView: View {
                     addKiroAccount()
                 }
                 .disabled(isBusy)
+            case .devin:
+                Text("Reads the API key the Devin CLI stores locally, or the Devin (formerly Windsurf) app's if the CLI isn't signed in — no setup needed if you're signed in to either on this Mac.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Button("Add Account") {
+                    addDevinAccount()
+                }
+                .disabled(isBusy)
             }
 
             if let errorMessage {
@@ -91,7 +100,7 @@ struct AddAccountView: View {
             }
         }
         .padding(20)
-        .frame(width: 640)
+        .frame(width: 700)
     }
 
     private func addCLIAccount() {
@@ -187,6 +196,27 @@ struct AddAccountView: View {
                 dismissWindow(id: "add-account")
             } catch {
                 errorMessage = "Couldn't read Kiro usage — run kiro-cli login or sign in to Kiro first: \(error)"
+            }
+        }
+    }
+
+    private func addDevinAccount() {
+        isBusy = true
+        errorMessage = nil
+        Task {
+            defer { isBusy = false }
+            do {
+                let id = UUID()
+                var account = ClaudeAccount(id: id, label: label, authKind: .devin, keychainKey: id.uuidString)
+                let snapshot = try await DevinProvider().fetchUsage(for: account)
+                if label.isEmpty {
+                    account.label = snapshot.detailLabel?.components(separatedBy: " · ").first ?? "Devin"
+                }
+                try await appState.addAccount(account)
+                await appState.refreshAll()
+                dismissWindow(id: "add-account")
+            } catch {
+                errorMessage = "Couldn't read Devin usage — run devin auth login or sign in to Devin first: \(error)"
             }
         }
     }

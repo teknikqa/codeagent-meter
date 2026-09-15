@@ -11,7 +11,7 @@ struct MainWindowView: View {
                 ContentUnavailableView(
                     "No Accounts Yet",
                     systemImage: "person.crop.circle.badge.plus",
-                    description: Text("Add a Claude, Codex, Antigravity, Cursor, or Kiro account to start tracking usage.")
+                    description: Text("Add a Claude, Codex, Antigravity, Cursor, Kiro, or Devin account to start tracking usage.")
                 )
             } else {
                 List {
