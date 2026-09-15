@@ -1,6 +1,6 @@
 # CodeAgent Meter
 
-A native macOS menu bar app for tracking usage/quota across AI coding agents. Tracks Claude Code, Codex, Antigravity, and Cursor, with multiple accounts per vendor.
+A native macOS menu bar app for tracking usage/quota across AI coding agents. Tracks Claude Code, Codex, Antigravity, Cursor, and Kiro, with multiple accounts per vendor.
 
 Multi-provider, multi-account, Keychain-based auth, in a simple menu bar package.
 
@@ -55,6 +55,9 @@ The fallback triggers a macOS Keychain prompt on first use; choose **Always Allo
 ## How Cursor auth works
 
 Reads the login the Cursor app keeps in its local settings database (`~/Library/Application Support/Cursor/User/globalStorage/state.vscdb`, opened read-only) and calls the dashboard API behind Cursor's settings page (`api2.cursor.sh` `GetCurrentPeriodUsage` and `GetPlanInfo`). Cursor meters one pool per billing cycle, shown as a **Monthly** bar that resets at the cycle end. The database is re-read on every refresh, so signing in again in Cursor needs no change here.
+## How Kiro auth works
+
+Reads the login the Kiro IDE keeps on disk (`~/.aws/sso/cache/kiro-auth-token.json`, plus the profile ARN in `~/Library/Application Support/Kiro/User/globalStorage/kiro.kiroagent/profile.json` for Builder ID logins) and calls the usage API behind Kiro's account dashboard (`management.<region>.kiro.dev` `Get-Usage-Limits`). Kiro meters one credit pool per month, shown as a **Monthly** bar that resets on the plan's reset date; overage spend is excluded so the bar tops out at 100%. The token is never refreshed here, since Kiro owns it. Kiro refreshes it while running, so an expired token while Kiro is closed shows **Open Kiro to refresh sign-in**.
 
 ## Architecture
 
