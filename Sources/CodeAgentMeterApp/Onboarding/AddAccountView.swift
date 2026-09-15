@@ -75,7 +75,7 @@ struct AddAccountView: View {
                 }
                 .disabled(isBusy)
             case .kiro:
-                Text("Reads the login the Kiro app stores locally — no setup needed if you're signed in to Kiro on this Mac.")
+                Text("Reads the login kiro-cli stores locally, or the Kiro app's if kiro-cli isn't signed in — no setup needed if you're signed in to either on this Mac.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Button("Add Account") {
@@ -186,7 +186,7 @@ struct AddAccountView: View {
                 await appState.refreshAll()
                 dismissWindow(id: "add-account")
             } catch {
-                errorMessage = "Couldn't read Kiro usage — open Kiro and sign in first: \(error)"
+                errorMessage = "Couldn't read Kiro usage — run kiro-cli login or sign in to Kiro first: \(error)"
             }
         }
     }
