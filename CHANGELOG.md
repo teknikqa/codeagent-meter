@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.0](https://github.com/teknikqa/codeagent-meter/compare/v1.5.0...v1.6.0) (2026-09-15)
+
+
+### Features
+
+* add Devin (Windsurf, Codeium) usage tracking ([#21](https://github.com/teknikqa/codeagent-meter/issues/21)) ([995abbf](https://github.com/teknikqa/codeagent-meter/commit/995abbf01ae5c6c61b8cf1fb808f5b9075743032))
+* add Kiro usage tracking ([#19](https://github.com/teknikqa/codeagent-meter/issues/19)) ([2b84953](https://github.com/teknikqa/codeagent-meter/commit/2b849534e3169135dafd698840662e86621b3d62))
+
 ## [1.5.0](https://github.com/teknikqa/codeagent-meter/compare/v1.4.0...v1.5.0) (2026-09-15)
 
 
