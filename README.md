@@ -1,6 +1,6 @@
 # CodeAgent Meter
 
-A native macOS menu bar app for tracking usage/quota across AI coding agents. Tracks Claude Code, Codex, Antigravity, Cursor, Kiro, and Devin (formerly Windsurf and Codeium), with multiple accounts per vendor.
+A native macOS menu bar app for tracking usage/quota across AI coding agents. Tracks Claude Code, Codex, Antigravity, Cursor, Kiro, Devin (formerly Windsurf and Codeium), and OpenRouter, with multiple accounts per vendor.
 
 Multi-provider, multi-account, Keychain-based auth, in a simple menu bar package.
 
@@ -76,6 +76,9 @@ Tokens are never refreshed here, since kiro-cli and Kiro own them. When kiro-cli
 Devin is the renamed Windsurf (itself renamed from Codeium), so one Devin account covers all three. It reads the API key the Devin CLI stores in `~/.local/share/devin/credentials.toml`, along with the `api_server_url` it signed in against. When the CLI isn't signed in, it falls back to the key in the Devin app's settings database (`~/Library/Application Support/Devin/User/globalStorage/state.vscdb`, key `windsurfAuthStatus`, opened read-only), then a pre-rename Windsurf install's.
 
 It calls `GetUserStatus` on the account's API server (`server.codeium.com` by default), the call the Devin app makes. Current plans show a **Daily** bar and a **Weekly** bar from the daily and weekly quotas. Older plans show a **Monthly** bar from their ACU or prompt-credit pool, resetting at the end of the plan period. Keys are re-read on every refresh, so signing in again needs no change here.
+## How OpenRouter auth works
+
+OpenRouter has no local login to read, so you paste an API key from [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys); it's stored in Keychain and deleted when you remove the account. The app calls `GET /api/v1/key`, which works with any key: a key with a spending cap shows a bar named after its reset period (e.g. **Monthly**), plus today's and this month's spend. `GET /api/v1/credits` only answers management keys, so for those the app also shows the account balance, and uses credits as the bar when the key has no cap. A normal key without a cap shows spend only.
 
 ## Architecture
 
