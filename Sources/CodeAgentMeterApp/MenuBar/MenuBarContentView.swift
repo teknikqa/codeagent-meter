@@ -41,6 +41,7 @@ struct MenuBarContentView: View {
             Divider()
 
             Button("Quit") {
+                AppDelegate.allowTermination = true
                 NSApplication.shared.terminate(nil)
             }
         }
@@ -54,6 +55,7 @@ struct MenuBarContentView: View {
     /// window front — activation alone isn't reliable for windows opened
     /// from a MenuBarExtra.
     private func activateAndFocusNewestWindow() {
+        AppDelegate.showInDock()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             NSApplication.shared.activate(ignoringOtherApps: true)
             NSApplication.shared.windows.last { $0.isVisible && $0.canBecomeKey }?.makeKeyAndOrderFront(nil)
