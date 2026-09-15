@@ -19,7 +19,7 @@ Multi-provider, multi-account, Keychain-based auth, in a simple menu bar package
 
 Builds the app, wraps it in a minimal `CodeAgent Meter.app` bundle under `.build/` (so Dock/Cmd+Tab show a real name instead of the raw binary name), ad-hoc signs it, and launches it via `open`. Pass `release` as an argument to build in release mode.
 
-For iteration without the bundle step, `swift build && swift run CodeAgentMeterApp` still works — or open `Package.swift` directly in Xcode 15+ for full build/debug support (no `.xcodeproj` is checked in). A bare `swift run` executable has no bundle, so it'll show as "CodeAgentMeterApp" in Dock/Cmd+Tab; use `scripts/run.sh` when that matters.
+For iteration without the bundle step, `swift build && swift run CodeAgentMeterApp` still works — or open `Package.swift` directly in Xcode 15+ for full build/debug support (no `.xcodeproj` is checked in). A bare `swift run` executable has no bundle, so it'll show as "CodeAgentMeterApp" in Dock/Cmd+Tab; use `scripts/run.sh` when that matters. With only the Command Line Tools and the macOS 27 SDK, a bare `swift build` fails with `plugin for module 'SwiftUIMacros' not found`; `scripts/run.sh` picks an older SDK automatically, or prefix the command with `SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk`.
 
 Either way, reading the Claude Code CLI's Keychain item triggers a one-time macOS access-permission prompt. If it keeps reappearing after every rebuild, that's because the binary's signing identity changed — `scripts/run.sh` re-signs on every run so this shouldn't recur; for a bare `swift run` binary, sign it manually:
 ```sh
