@@ -32,10 +32,20 @@ public struct KiroProvider: UsageProvider {
     private static var cliDatabasePath: String {
         home.appendingPathComponent("Library/Application Support/kiro-cli/data.sqlite3").path
     }
-    private static let cliTokenKey = "kirocli:odic:token"
+    /// kiro-cli keeps one token per login type in `auth_kv`, each paired with the
+    /// `TokenType` header Kiro sends for it (none for Google/GitHub).
+    private static let cliTokenKeys: [(key: String, tokenType: String?)] = [
+        ("kirocli:odic:token", "SSO_OIDC"),
+        ("kirocli:social:token", nil),
+        ("kirocli:external-idp:token", "EXTERNAL_IDP"),
+    ]
+    private static let cliProfileKey = "api.codewhisperer.profile"
+    static let builderIDStartURL = "https://view.awsapps.com/start"
 
     /// The fixed profiles Kiro uses for non-enterprise logins, from the IDE's
-    /// `ListAvailableProfiles` fallback map.
+    /// `ListAvailableProfiles` fallback map. Enterprise logins (IAM Identity
+    /// Center, external IdP) have no default, so they need the profile the IDE
+    /// or CLI stored after sign-in.
     static let builderIDProfileArn = "arn:aws:codewhisperer:us-east-1:638616132270:profile/AAAACCCCXXXX"
     static let socialProfileArn = "arn:aws:codewhisperer:us-east-1:699475941385:profile/EHGA3GRVQMUK"
 
@@ -46,18 +56,29 @@ public struct KiroProvider: UsageProvider {
     }
 
     public func fetchUsage(for account: ClaudeAccount) async throws -> UsageSnapshot {
-        var credential = Self.cliCredential(Self.readCLIToken())
-        if credential == nil, Self.readCLIToken() != nil {
+        var cliValues = Self.readCLIValues()
+        var credential = Self.cliCredential(cliValues)
+        if credential == nil, Self.cliTokenKeys.contains(where: { cliValues[$0.key] != nil }) {
             // ponytail: a dead CLI refresh token costs one CLI run per refresh before
             // falling back to the IDE; remember the failure if that gets slow.
             await Self.runCLIToRefreshToken()
-            credential = Self.cliCredential(Self.readCLIToken())
+            cliValues = Self.readCLIValues()
+            credential = Self.cliCredential(cliValues)
         }
         guard let credential = credential ?? Self.ideCredential(
             token: try? Data(contentsOf: Self.ideTokenURL),
             profile: try? Data(contentsOf: Self.ideProfileURL)
         ) else { throw KiroError.notSignedIn }
 
+        let (data, response) = try await urlSession.data(for: Self.request(for: credential))
+        let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+        guard status == 200 else {
+            throw status == 401 || status == 403 ? KiroError.notSignedIn : KiroError.requestFailed(status)
+        }
+        return try Self.snapshot(from: data)
+    }
+
+    static func request(for credential: Credential) -> URLRequest {
         var components = URLComponents(string: "https://management.\(credential.region).kiro.dev/Get-Usage-Limits")!
         components.queryItems = [
             URLQueryItem(name: "origin", value: "AI_EDITOR"),
@@ -68,58 +89,82 @@ public struct KiroProvider: UsageProvider {
         request.timeoutInterval = 15
         request.setValue("Bearer \(credential.accessToken)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        let (data, response) = try await urlSession.data(for: request)
-        let status = (response as? HTTPURLResponse)?.statusCode ?? -1
-        guard status == 200 else {
-            throw status == 401 || status == 403 ? KiroError.notSignedIn : KiroError.requestFailed(status)
+        if let tokenType = credential.tokenType {
+            request.setValue(tokenType, forHTTPHeaderField: "TokenType")
         }
-        return try Self.snapshot(from: data)
+        return request
     }
 
     // MARK: - Credentials
 
     struct Credential: Equatable {
         let accessToken: String
-        let region: String
         let profileArn: String
+        let tokenType: String?
+
+        /// The API endpoint follows the profile's region, as in the IDE.
+        var region: String {
+            let parts = profileArn.split(separator: ":", omittingEmptySubsequences: false)
+            return parts.count > 3 && !parts[3].isEmpty ? String(parts[3]) : "us-east-1"
+        }
+    }
+
+    private struct Profile: Decodable { let arn: String }
+
+    private struct CLIToken: Decodable {
+        let access_token: String
+        let expires_at: String?
+        /// Builder ID and IAM Identity Center tokens only.
+        let start_url: String?
+        /// Google/GitHub tokens only.
+        let profile_arn: String?
     }
 
     private struct IDEToken: Decodable {
         let accessToken: String
         let expiresAt: String?
-        let region: String?
-        /// Present for Google/GitHub logins; Builder ID keeps it in `profile.json`.
+        /// Present for Google/GitHub logins; others keep it in `profile.json`.
         let profileArn: String?
+        /// `BuilderId`, `Enterprise`, `Internal`, `Google`, `Github` or `ExternalIdp`.
         let provider: String?
+        /// `IdC`, `social` or `external_idp`; older files omit it.
+        let authMethod: String?
     }
 
-    private struct IDEProfile: Decodable { let arn: String }
-
-    private struct CLIToken: Decodable {
-        let access_token: String
-        let expires_at: String?
-        let region: String?
+    private static func readCLIValues() -> [String: String] {
+        CursorProvider.readValues(keys: cliTokenKeys.map(\.key), table: "auth_kv", databasePath: cliDatabasePath)
+            .merging(CursorProvider.readValues(keys: [cliProfileKey], table: "state", databasePath: cliDatabasePath)) { $1 }
     }
 
-    private static func readCLIToken() -> Data? {
-        CursorProvider.readValues(keys: [cliTokenKey], table: "auth_kv", databasePath: cliDatabasePath)[cliTokenKey]
-            .map { Data($0.utf8) }
-    }
-
-    // ponytail: CLI logins assume Builder ID's profile; IAM Identity Center users
-    // need `ListAvailableProfiles` if one ever uses this.
-    static func cliCredential(_ data: Data?, now: Date = Date()) -> Credential? {
-        guard let token = data.flatMap({ try? JSONDecoder().decode(CLIToken.self, from: $0) }),
-              isFresh(token.expires_at, now: now) else { return nil }
-        return Credential(accessToken: token.access_token, region: token.region ?? "us-east-1", profileArn: builderIDProfileArn)
+    /// Picks kiro-cli's unexpired login. `values` holds its `auth_kv` tokens and
+    /// the `api.codewhisperer.profile` state row.
+    static func cliCredential(_ values: [String: String], now: Date = Date()) -> Credential? {
+        let storedArn = values[cliProfileKey].flatMap { try? JSONDecoder().decode(Profile.self, from: Data($0.utf8)) }?.arn
+        for (key, tokenType) in cliTokenKeys {
+            guard let token = values[key].flatMap({ try? JSONDecoder().decode(CLIToken.self, from: Data($0.utf8)) }),
+                  isFresh(token.expires_at, now: now) else { continue }
+            let defaultArn: String? = switch tokenType {
+            case "SSO_OIDC": token.start_url == nil || token.start_url == builderIDStartURL ? builderIDProfileArn : nil
+            case nil: socialProfileArn
+            default: nil
+            }
+            guard let arn = token.profile_arn ?? storedArn ?? defaultArn else { continue }
+            return Credential(accessToken: token.access_token, profileArn: arn, tokenType: tokenType)
+        }
+        return nil
     }
 
     static func ideCredential(token data: Data?, profile: Data?, now: Date = Date()) -> Credential? {
         guard let token = data.flatMap({ try? JSONDecoder().decode(IDEToken.self, from: $0) }),
               isFresh(token.expiresAt, now: now) else { return nil }
-        let storedArn = token.profileArn ?? profile.flatMap { try? JSONDecoder().decode(IDEProfile.self, from: $0) }?.arn
-        let defaultArn = token.provider == "Google" || token.provider == "Github" ? socialProfileArn : builderIDProfileArn
-        return Credential(accessToken: token.accessToken, region: token.region ?? "us-east-1", profileArn: storedArn ?? defaultArn)
+        // Older token files lack `authMethod`; the IDE derives it from `provider` the same way.
+        let authMethod = token.authMethod ?? (token.provider == "Google" || token.provider == "Github" ? "social" : "IdC")
+        let tokenType = ["IdC": "SSO_OIDC", "external_idp": "EXTERNAL_IDP"][authMethod]
+        let storedArn = profile.flatMap { try? JSONDecoder().decode(Profile.self, from: $0) }?.arn
+        let defaultArn = authMethod == "social" ? socialProfileArn
+            : authMethod == "IdC" && (token.provider ?? "BuilderId") == "BuilderId" ? builderIDProfileArn : nil
+        guard let arn = token.profileArn ?? storedArn ?? defaultArn else { return nil }
+        return Credential(accessToken: token.accessToken, profileArn: arn, tokenType: tokenType)
     }
 
     private static func isFresh(_ expiresAt: String?, now: Date) -> Bool {
