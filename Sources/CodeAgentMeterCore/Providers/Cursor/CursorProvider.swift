@@ -90,8 +90,9 @@ public struct CursorProvider: UsageProvider {
 
     // MARK: - Local settings database
 
-    /// Reads string values from Cursor's VS Code-style `ItemTable` key/value store.
-    static func readValues(keys: [String], databasePath: String = databasePath) -> [String: String] {
+    /// Reads string values from a `key`/`value` SQLite table, by default Cursor's
+    /// VS Code-style `ItemTable`. Kiro reuses it for kiro-cli's `auth_kv`.
+    static func readValues(keys: [String], table: String = "ItemTable", databasePath: String = databasePath) -> [String: String] {
         var db: OpaquePointer?
         guard sqlite3_open_v2(databasePath, &db, SQLITE_OPEN_READONLY, nil) == SQLITE_OK else {
             sqlite3_close(db)
@@ -100,7 +101,7 @@ public struct CursorProvider: UsageProvider {
         defer { sqlite3_close(db) }
 
         var statement: OpaquePointer?
-        guard sqlite3_prepare_v2(db, "SELECT value FROM ItemTable WHERE key = ?", -1, &statement, nil) == SQLITE_OK else {
+        guard sqlite3_prepare_v2(db, "SELECT value FROM \(table) WHERE key = ?", -1, &statement, nil) == SQLITE_OK else {
             return [:]
         }
         defer { sqlite3_finalize(statement) }
