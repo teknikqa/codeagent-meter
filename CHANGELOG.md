@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/teknikqa/codeagent-meter/compare/v1.6.0...v1.7.0) (2026-09-15)
+
+
+### Features
+
+* add OpenRouter usage tracking ([#22](https://github.com/teknikqa/codeagent-meter/issues/22)) ([cd25c42](https://github.com/teknikqa/codeagent-meter/commit/cd25c42fb8fa094eae3197f732ffb55737214b2d))
+
 ## [1.6.0](https://github.com/teknikqa/codeagent-meter/compare/v1.5.0...v1.6.0) (2026-09-15)
 
 
