@@ -7,6 +7,7 @@ public enum ClaudeAuthKind: String, Codable, Sendable {
     case codexCLI
     case antigravity
     case cursor
+    case kiro
 }
 
 public struct ClaudeAccount: Identifiable, Codable, Equatable, Sendable {
@@ -45,6 +46,7 @@ public struct ClaudeAccount: Identifiable, Codable, Equatable, Sendable {
         case .codexCLI: return CodexProvider.vendorID
         case .antigravity: return AntigravityProvider.vendorID
         case .cursor: return CursorProvider.vendorID
+        case .kiro: return KiroProvider.vendorID
         case .cliKeychain, .cookie, .adminKey: return ClaudeProvider.vendorID
         }
     }
