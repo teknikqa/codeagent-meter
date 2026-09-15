@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.5.0](https://github.com/teknikqa/codeagent-meter/compare/v1.4.0...v1.5.0) (2026-09-15)
+
+
+### Features
+
+* show Dock icon only while a window is open ([#16](https://github.com/teknikqa/codeagent-meter/issues/16)) ([9696b9b](https://github.com/teknikqa/codeagent-meter/commit/9696b9b315c22fd91d99c0d7db5cb4148942b15d))
+
+
+### Bug Fixes
+
+* build with a compatible SDK when only Command Line Tools are installed ([#18](https://github.com/teknikqa/codeagent-meter/issues/18)) ([dd991f8](https://github.com/teknikqa/codeagent-meter/commit/dd991f8c95481b23b6b9add4f4d7cb57e0abb8bb))
+
 ## [1.4.0](https://github.com/teknikqa/codeagent-meter/compare/v1.3.0...v1.4.0) (2026-09-14)
 
 
