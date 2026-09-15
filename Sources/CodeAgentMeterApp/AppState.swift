@@ -104,6 +104,7 @@ public final class AppState: ObservableObject {
         if error is CodexError { return "Needs re-auth — run codex login" }
         if case AntigravityError.notSignedIn = error { return "Open Antigravity or sign in to agy" }
         if case CursorError.notSignedIn = error { return "Sign in to Cursor" }
+        if case KiroError.notSignedIn = error { return "Run kiro-cli login or open Kiro" }
         return "Refresh failed"
     }
 }

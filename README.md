@@ -1,6 +1,6 @@
 # CodeAgent Meter
 
-A native macOS menu bar app for tracking usage/quota across AI coding agents. Tracks Claude Code, Codex, Antigravity, and Cursor, with multiple accounts per vendor.
+A native macOS menu bar app for tracking usage/quota across AI coding agents. Tracks Claude Code, Codex, Antigravity, Cursor, and Kiro, with multiple accounts per vendor.
 
 Multi-provider, multi-account, Keychain-based auth, in a simple menu bar package.
 
@@ -55,6 +55,22 @@ The fallback triggers a macOS Keychain prompt on first use; choose **Always Allo
 ## How Cursor auth works
 
 Reads the login the Cursor app keeps in its local settings database (`~/Library/Application Support/Cursor/User/globalStorage/state.vscdb`, opened read-only) and calls the dashboard API behind Cursor's settings page (`api2.cursor.sh` `GetCurrentPeriodUsage` and `GetPlanInfo`). Cursor meters one pool per billing cycle, shown as a **Monthly** bar that resets at the cycle end. The database is re-read on every refresh, so signing in again in Cursor needs no change here.
+## How Kiro auth works
+
+Reads kiro-cli's login (`~/Library/Application Support/kiro-cli/data.sqlite3`, opened read-only). When kiro-cli isn't installed or signed in, it falls back to the login the Kiro IDE keeps on disk (`~/.aws/sso/cache/kiro-auth-token.json`, with the profile from `~/Library/Application Support/Kiro/User/globalStorage/kiro.kiroagent/profile.json`). It calls the usage API behind Kiro's account dashboard (`management.<profile region>.kiro.dev` `Get-Usage-Limits`). Kiro meters one credit pool per month, shown as a **Monthly** bar that resets on the plan's reset date; overage spend is excluded so the bar tops out at 100%.
+
+Every Kiro login type works:
+
+| Login | kiro-cli token | Profile | `TokenType` header |
+| --- | --- | --- | --- |
+| AWS Builder ID | `kirocli:odic:token` | stored, else Kiro's Builder ID default | `SSO_OIDC` |
+| Google / GitHub | `kirocli:social:token` | in the token, else Kiro's social default | none |
+| IAM Identity Center | `kirocli:odic:token` | stored after sign-in | `SSO_OIDC` |
+| External IdP | `kirocli:external-idp:token` | stored after sign-in | `EXTERNAL_IDP` |
+
+Organization logins have no default profile, so they need the profile kiro-cli (`state` row `api.codewhisperer.profile`) or the IDE (`profile.json`) saved after sign-in.
+
+Tokens are never refreshed here, since kiro-cli and Kiro own them. When kiro-cli's token has expired, the app runs `kiro-cli chat --no-interactive /usage` once so the CLI refreshes its own token. The IDE refreshes its token only while Kiro is open.
 
 ## Architecture
 
