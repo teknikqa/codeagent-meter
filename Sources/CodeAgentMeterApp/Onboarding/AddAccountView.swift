@@ -8,6 +8,7 @@ struct AddAccountView: View {
     @State private var mode: Mode = .cliDetect
     @State private var label = ""
     @State private var codexHome = CodexProvider.defaultHome
+    @State private var openRouterKey = ""
     @State private var isBusy = false
     @State private var errorMessage: String?
 
@@ -19,6 +20,7 @@ struct AddAccountView: View {
         case cursor = "Cursor"
         case kiro = "Kiro"
         case devin = "Devin"
+        case openRouter = "OpenRouter"
         var id: String { rawValue }
     }
 
@@ -91,6 +93,16 @@ struct AddAccountView: View {
                     addDevinAccount()
                 }
                 .disabled(isBusy)
+            case .openRouter:
+                Text("Paste an API key from openrouter.ai/settings/keys. A key with a spending cap shows that cap; a management key also shows your credit balance. The key is stored in Keychain.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                SecureField("sk-or-v1-…", text: $openRouterKey)
+                    .textFieldStyle(.roundedBorder)
+                Button("Add Account") {
+                    addOpenRouterAccount()
+                }
+                .disabled(isBusy || openRouterKey.isEmpty)
             }
 
             if let errorMessage {
@@ -100,7 +112,7 @@ struct AddAccountView: View {
             }
         }
         .padding(20)
-        .frame(width: 700)
+        .frame(width: 780)
     }
 
     private func addCLIAccount() {
@@ -217,6 +229,26 @@ struct AddAccountView: View {
                 dismissWindow(id: "add-account")
             } catch {
                 errorMessage = "Couldn't read Devin usage — run devin auth login or sign in to Devin first: \(error)"
+            }
+        }
+    }
+
+    private func addOpenRouterAccount() {
+        isBusy = true
+        errorMessage = nil
+        Task {
+            defer { isBusy = false }
+            do {
+                let provider = OpenRouterProvider()
+                _ = try await provider.fetchUsage(apiKey: openRouterKey)
+                let id = UUID()
+                let account = ClaudeAccount(id: id, label: label.isEmpty ? "OpenRouter" : label, authKind: .openRouter, keychainKey: id.uuidString)
+                try provider.storeKey(openRouterKey, account: account)
+                try await appState.addAccount(account)
+                await appState.refreshAll()
+                dismissWindow(id: "add-account")
+            } catch {
+                errorMessage = "That OpenRouter key didn't work: \(error)"
             }
         }
     }

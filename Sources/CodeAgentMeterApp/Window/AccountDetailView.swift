@@ -139,6 +139,7 @@ struct AccountDetailView: View {
         case .cursor: return "Cursor app login"
         case .kiro: return "kiro-cli or Kiro app login"
         case .devin: return "Devin CLI or Devin app login"
+        case .openRouter: return "OpenRouter API key"
         }
     }
 }
