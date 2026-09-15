@@ -57,7 +57,9 @@ The fallback triggers a macOS Keychain prompt on first use; choose **Always Allo
 Reads the login the Cursor app keeps in its local settings database (`~/Library/Application Support/Cursor/User/globalStorage/state.vscdb`, opened read-only) and calls the dashboard API behind Cursor's settings page (`api2.cursor.sh` `GetCurrentPeriodUsage` and `GetPlanInfo`). Cursor meters one pool per billing cycle, shown as a **Monthly** bar that resets at the cycle end. The database is re-read on every refresh, so signing in again in Cursor needs no change here.
 ## How Kiro auth works
 
-Reads the login the Kiro IDE keeps on disk (`~/.aws/sso/cache/kiro-auth-token.json`, plus the profile ARN in `~/Library/Application Support/Kiro/User/globalStorage/kiro.kiroagent/profile.json` for Builder ID logins) and calls the usage API behind Kiro's account dashboard (`management.<region>.kiro.dev` `Get-Usage-Limits`). Kiro meters one credit pool per month, shown as a **Monthly** bar that resets on the plan's reset date; overage spend is excluded so the bar tops out at 100%. The token is never refreshed here, since Kiro owns it. Kiro refreshes it while running, so an expired token while Kiro is closed shows **Open Kiro to refresh sign-in**.
+Reads kiro-cli's login (`~/Library/Application Support/kiro-cli/data.sqlite3`, opened read-only). When kiro-cli isn't installed or signed in, it falls back to the login the Kiro IDE keeps on disk (`~/.aws/sso/cache/kiro-auth-token.json`, with the profile ARN from `~/Library/Application Support/Kiro/User/globalStorage/kiro.kiroagent/profile.json`). It calls the usage API behind Kiro's account dashboard (`management.<region>.kiro.dev` `Get-Usage-Limits`). Kiro meters one credit pool per month, shown as a **Monthly** bar that resets on the plan's reset date; overage spend is excluded so the bar tops out at 100%.
+
+Tokens are never refreshed here, since kiro-cli and Kiro own them. When kiro-cli's token has expired, the app runs `kiro-cli chat --no-interactive /usage` once so the CLI refreshes its own token. The IDE refreshes its token only while Kiro is open.
 
 ## Architecture
 
