@@ -9,6 +9,7 @@ public enum ClaudeAuthKind: String, Codable, Sendable {
     case cursor
     case kiro
     case devin
+    case openRouter
 }
 
 public struct ClaudeAccount: Identifiable, Codable, Equatable, Sendable {
@@ -49,6 +50,7 @@ public struct ClaudeAccount: Identifiable, Codable, Equatable, Sendable {
         case .cursor: return CursorProvider.vendorID
         case .kiro: return KiroProvider.vendorID
         case .devin: return DevinProvider.vendorID
+        case .openRouter: return OpenRouterProvider.vendorID
         case .cliKeychain, .cookie, .adminKey: return ClaudeProvider.vendorID
         }
     }

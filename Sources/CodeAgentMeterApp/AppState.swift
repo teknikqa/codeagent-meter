@@ -106,6 +106,8 @@ public final class AppState: ObservableObject {
         if case CursorError.notSignedIn = error { return "Sign in to Cursor" }
         if case KiroError.notSignedIn = error { return "Run kiro-cli login or open Kiro" }
         if case DevinError.notSignedIn = error { return "Run devin auth login or sign in to Devin" }
+        if case OpenRouterError.invalidKey = error { return "OpenRouter key revoked — re-add it" }
+        if case OpenRouterError.missingKey = error { return "OpenRouter key missing — re-add it" }
         return "Refresh failed"
     }
 }

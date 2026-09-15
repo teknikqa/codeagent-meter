@@ -9,6 +9,7 @@ public enum ProviderRegistry {
     public static let cursor: any UsageProvider = CursorProvider()
     public static let kiro: any UsageProvider = KiroProvider()
     public static let devin: any UsageProvider = DevinProvider()
+    public static let openRouter: any UsageProvider = OpenRouterProvider()
 
     /// Display order for vendor sections in the UI.
     public static let vendors: [(id: String, displayName: String)] = [
@@ -18,6 +19,7 @@ public enum ProviderRegistry {
         (CursorProvider.vendorID, CursorProvider.displayName),
         (KiroProvider.vendorID, KiroProvider.displayName),
         (DevinProvider.vendorID, DevinProvider.displayName),
+        (OpenRouterProvider.vendorID, OpenRouterProvider.displayName),
     ]
 
     public static func provider(for account: ClaudeAccount) -> any UsageProvider {
@@ -27,6 +29,7 @@ public enum ProviderRegistry {
         case CursorProvider.vendorID: return cursor
         case KiroProvider.vendorID: return kiro
         case DevinProvider.vendorID: return devin
+        case OpenRouterProvider.vendorID: return openRouter
         default: return claude
         }
     }
