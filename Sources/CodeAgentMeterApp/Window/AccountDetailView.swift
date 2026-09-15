@@ -137,6 +137,7 @@ struct AccountDetailView: View {
         case .codexCLI: return "Codex CLI · \(account.codexHome ?? CodexProvider.defaultHome)"
         case .antigravity: return "Antigravity app or agy login"
         case .cursor: return "Cursor app login"
+        case .kiro: return "Kiro app login"
         }
     }
 }

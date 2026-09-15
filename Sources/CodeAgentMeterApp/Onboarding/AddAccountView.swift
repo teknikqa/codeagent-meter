@@ -17,6 +17,7 @@ struct AddAccountView: View {
         case codex = "Codex CLI"
         case antigravity = "Antigravity"
         case cursor = "Cursor"
+        case kiro = "Kiro"
         var id: String { rawValue }
     }
 
@@ -71,6 +72,14 @@ struct AddAccountView: View {
                     .foregroundStyle(.secondary)
                 Button("Add Account") {
                     addCursorAccount()
+                }
+                .disabled(isBusy)
+            case .kiro:
+                Text("Reads the login the Kiro app stores locally — no setup needed if you're signed in to Kiro on this Mac.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Button("Add Account") {
+                    addKiroAccount()
                 }
                 .disabled(isBusy)
             }
@@ -160,6 +169,24 @@ struct AddAccountView: View {
                 dismissWindow(id: "add-account")
             } catch {
                 errorMessage = "Couldn't read Cursor usage — sign in to Cursor first: \(error)"
+            }
+        }
+    }
+
+    private func addKiroAccount() {
+        isBusy = true
+        errorMessage = nil
+        Task {
+            defer { isBusy = false }
+            do {
+                let id = UUID()
+                let account = ClaudeAccount(id: id, label: label.isEmpty ? "Kiro" : label, authKind: .kiro, keychainKey: id.uuidString)
+                _ = try await KiroProvider().fetchUsage(for: account)
+                try await appState.addAccount(account)
+                await appState.refreshAll()
+                dismissWindow(id: "add-account")
+            } catch {
+                errorMessage = "Couldn't read Kiro usage — open Kiro and sign in first: \(error)"
             }
         }
     }
