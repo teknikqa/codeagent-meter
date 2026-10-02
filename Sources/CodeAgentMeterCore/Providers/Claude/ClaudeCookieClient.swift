@@ -7,6 +7,7 @@ public enum ClaudeCookieError: Error {
     case requestFailed(Int)
     case decodingFailed
     case noOrganizationsFound
+    case wrongOrganization
 }
 
 /// Fetches Claude usage via claude.ai's session-cookie-authenticated API, the
@@ -58,6 +59,20 @@ public struct ClaudeCookieClient: Sendable {
         let normalized = Self.normalizeSessionKey(sessionKey)
         guard let data = normalized.data(using: .utf8) else { throw ClaudeCookieError.missingCookie }
         try secretsStore.write(data: data, account: account.keychainKey)
+    }
+
+    /// Replaces an existing account's session cookie once the old one expires.
+    /// Rejects a cookie whose login can't see the account's organization, so a
+    /// cookie pasted into the wrong account doesn't overwrite a recoverable one.
+    public func replaceSessionKey(_ sessionKey: String, account: ClaudeAccount) async throws {
+        let organizations: [ClaudeOrganization] = try await request(
+            "\(Self.baseURL)/organizations",
+            sessionKey: Self.normalizeSessionKey(sessionKey)
+        )
+        guard organizations.contains(where: { $0.uuid == account.orgId }) else {
+            throw ClaudeCookieError.wrongOrganization
+        }
+        try storeSessionKey(sessionKey, account: account)
     }
 
     /// Users are commonly instructed to copy the cookie two different ways:
