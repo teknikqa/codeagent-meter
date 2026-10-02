@@ -62,7 +62,7 @@ struct AddAccountView: View {
                 }
                 .disabled(isBusy || codexHome.isEmpty)
             case .antigravity:
-                Text("Reads quota from the running Antigravity app or IDE. When neither is open, falls back to the Google login `agy` stored in Keychain — macOS asks for access the first time.")
+                Text("Reads quota from the running Antigravity app or IDE. When neither is open, falls back to the Google login `agy` stored in Keychain.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Button("Add Account") {

@@ -21,13 +21,13 @@ Builds the app, wraps it in a minimal `CodeAgent Meter.app` bundle under `.build
 
 For iteration without the bundle step, `swift build && swift run CodeAgentMeterApp` still works — or open `Package.swift` directly in Xcode 15+ for full build/debug support (no `.xcodeproj` is checked in). A bare `swift run` executable has no bundle, so it'll show as "CodeAgentMeterApp" in Dock/Cmd+Tab; use `scripts/run.sh` when that matters. With only the Command Line Tools and the macOS 27 SDK, a bare `swift build` fails with `plugin for module 'SwiftUIMacros' not found`; `scripts/run.sh` picks an older SDK automatically, or prefix the command with `SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk`.
 
-### Keychain prompts
+### Keychain access
 
-`scripts/run.sh` signs the bundle with a self-signed certificate, "CodeAgent Meter Local Signing", which it creates in your login keychain on first run. The certificate gives the app the same identity on every build, so macOS remembers each **Always Allow** you grant. Expect one prompt per Keychain item the first time (each pasted cookie or key, plus the Claude Code and `agy` logins), then none.
+The app reads and writes Keychain through `/usr/bin/security` instead of the Security framework, so macOS never asks for your login password. Keychain ties access to the identity of the code that asks. Without an Apple-issued certificate that identity is the binary's hash, so the framework route prompted for every item after every rebuild.
 
-An ad-hoc signature (`codesign --sign -`, or a bare `swift run` binary) identifies the app by its binary hash instead, so every rebuild is a new app to Keychain and the prompts return. Set `CODESIGN_IDENTITY` to sign with your own certificate, or to `-` for ad-hoc. To remove the local certificate, delete it and its private key in Keychain Access.
+The trade-off: any process running as you can read this app's items the same way, without a prompt. That matches how the Claude Code CLI stores its own login. Signing with a Developer ID and returning to the Security framework is future work, along with notarization and a distributable `.app` bundle.
 
-Notarization and a distributable `.app` bundle are future work — the self-signed bundle is for local use only.
+`scripts/run.sh` signs ad-hoc. Set `CODESIGN_IDENTITY` to sign with your own certificate.
 
 ## How Claude auth works
 
@@ -50,8 +50,6 @@ Antigravity meters two quota groups, Gemini and Claude + GPT, each with a 5-hour
 
 1. **Running Antigravity app or IDE**: the local language server's CSRF token comes from its command line (`ps`), its port from `lsof`, and quota from its `RetrieveUserQuotaSummary` endpoint. No stored credentials involved.
 2. **`agy` login fallback**: when neither is open, reads the Google login `agy` stores in Keychain (service `gemini`, account `antigravity`) and calls Google's `loadCodeAssist` and `retrieveUserQuotaSummary`. Expired access tokens are refreshed with the OAuth client embedded in the installed `agy` binary; Google refresh tokens don't rotate, so `agy`'s login keeps working. Refreshed tokens are cached in **this app's own** Keychain item — `agy`'s is never written to.
-
-The fallback triggers a macOS Keychain prompt on first use; choose **Always Allow** or it asks again on every refresh while Antigravity is closed.
 
 ## How Cursor auth works
 

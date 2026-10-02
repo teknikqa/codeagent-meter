@@ -72,27 +72,10 @@ cat > "$BUNDLE/Contents/Info.plist" <<PLIST
 </plist>
 PLIST
 
-# Sign with a stable self-signed identity rather than ad-hoc. An ad-hoc
-# signature identifies the app by its binary hash, so every rebuild looks
-# like a new app to Keychain and "Always Allow" never sticks. A certificate
-# keeps the identity constant across rebuilds. Set CODESIGN_IDENTITY to use
-# your own (e.g. a Developer ID), or "-" for ad-hoc.
-SIGN_IDENTITY="${CODESIGN_IDENTITY:-CodeAgent Meter Local Signing}"
-if [[ "$SIGN_IDENTITY" != "-" ]] && ! security find-certificate -c "$SIGN_IDENTITY" >/dev/null 2>&1; then
-  echo "Creating self-signed code signing certificate \"$SIGN_IDENTITY\" in the login keychain (one-time)..."
-  CERT_DIR="$(mktemp -d)"
-  # /usr/bin/openssl (LibreSSL) writes a PKCS#12 that `security import` can read; Homebrew's OpenSSL 3 doesn't.
-  /usr/bin/openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -subj "/CN=$SIGN_IDENTITY" \
-    -addext "keyUsage=critical,digitalSignature" -addext "extendedKeyUsage=critical,codeSigning" \
-    -keyout "$CERT_DIR/key.pem" -out "$CERT_DIR/cert.pem" 2>/dev/null
-  /usr/bin/openssl pkcs12 -export -inkey "$CERT_DIR/key.pem" -in "$CERT_DIR/cert.pem" \
-    -name "$SIGN_IDENTITY" -passout pass:codeagent -out "$CERT_DIR/identity.p12"
-  security import "$CERT_DIR/identity.p12" -P codeagent -T /usr/bin/codesign
-  rm -rf "$CERT_DIR"
-fi
-
-echo "Signing as \"$SIGN_IDENTITY\"..."
-codesign --force --deep --sign "$SIGN_IDENTITY" "$BUNDLE"
+# Ad-hoc by default. Set CODESIGN_IDENTITY to sign with a real certificate
+# (e.g. a Developer ID).
+echo "Signing..."
+codesign --force --deep --sign "${CODESIGN_IDENTITY:--}" "$BUNDLE"
 
 echo "Launching..."
 open "$BUNDLE"
