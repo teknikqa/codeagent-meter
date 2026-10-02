@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.7.1](https://github.com/teknikqa/codeagent-meter/compare/v1.7.0...v1.7.1) (2026-10-02)
+
+
+### Bug Fixes
+
+* access Keychain through the security tool to stop password prompts ([#27](https://github.com/teknikqa/codeagent-meter/issues/27)) ([11f5e5a](https://github.com/teknikqa/codeagent-meter/commit/11f5e5a8817e93c2ecff0ef43c2e3755f59f0044))
+* re-authenticate cookie and OpenRouter accounts in place ([#24](https://github.com/teknikqa/codeagent-meter/issues/24)) ([868efdd](https://github.com/teknikqa/codeagent-meter/commit/868efddac0c74ec71428107a66dd23ae3c5409ca))
+* sign with a stable identity so Keychain access grants persist ([#26](https://github.com/teknikqa/codeagent-meter/issues/26)) ([b01da5b](https://github.com/teknikqa/codeagent-meter/commit/b01da5ba278c9ca010d45cf980240eca74f09abf))
+
 ## [1.7.0](https://github.com/teknikqa/codeagent-meter/compare/v1.6.0...v1.7.0) (2026-09-15)
 
 
