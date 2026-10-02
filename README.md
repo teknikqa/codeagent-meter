@@ -17,16 +17,17 @@ Multi-provider, multi-account, Keychain-based auth, in a simple menu bar package
 ./scripts/run.sh
 ```
 
-Builds the app, wraps it in a minimal `CodeAgent Meter.app` bundle under `.build/` (so Dock/Cmd+Tab show a real name instead of the raw binary name), ad-hoc signs it, and launches it via `open`. Pass `release` as an argument to build in release mode.
+Builds the app, wraps it in a minimal `CodeAgent Meter.app` bundle under `.build/` (so Dock/Cmd+Tab show a real name instead of the raw binary name), signs it, and launches it via `open`. Pass `release` as an argument to build in release mode.
 
 For iteration without the bundle step, `swift build && swift run CodeAgentMeterApp` still works — or open `Package.swift` directly in Xcode 15+ for full build/debug support (no `.xcodeproj` is checked in). A bare `swift run` executable has no bundle, so it'll show as "CodeAgentMeterApp" in Dock/Cmd+Tab; use `scripts/run.sh` when that matters. With only the Command Line Tools and the macOS 27 SDK, a bare `swift build` fails with `plugin for module 'SwiftUIMacros' not found`; `scripts/run.sh` picks an older SDK automatically, or prefix the command with `SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk`.
 
-Either way, reading the Claude Code CLI's Keychain item triggers a one-time macOS access-permission prompt. If it keeps reappearing after every rebuild, that's because the binary's signing identity changed — `scripts/run.sh` re-signs on every run so this shouldn't recur; for a bare `swift run` binary, sign it manually:
-```sh
-codesign --force --deep --sign - .build/debug/CodeAgentMeterApp
-```
+### Keychain prompts
 
-Notarization and a properly-signed, distributable `.app` bundle are future work — `scripts/run.sh`'s bundle is unsigned beyond ad-hoc, for local use only.
+`scripts/run.sh` signs the bundle with a self-signed certificate, "CodeAgent Meter Local Signing", which it creates in your login keychain on first run. The certificate gives the app the same identity on every build, so macOS remembers each **Always Allow** you grant. Expect one prompt per Keychain item the first time (each pasted cookie or key, plus the Claude Code and `agy` logins), then none.
+
+An ad-hoc signature (`codesign --sign -`, or a bare `swift run` binary) identifies the app by its binary hash instead, so every rebuild is a new app to Keychain and the prompts return. Set `CODESIGN_IDENTITY` to sign with your own certificate, or to `-` for ad-hoc. To remove the local certificate, delete it and its private key in Keychain Access.
+
+Notarization and a distributable `.app` bundle are future work — the self-signed bundle is for local use only.
 
 ## How Claude auth works
 
