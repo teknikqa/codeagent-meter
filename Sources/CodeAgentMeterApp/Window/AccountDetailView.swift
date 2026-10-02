@@ -5,11 +5,15 @@ struct AccountDetailView: View {
     let account: ClaudeAccount
     let state: AppState.RefreshState
     let onRename: (String) -> Void
+    let onReauth: (String) async throws -> Void
     let onRemove: () -> Void
 
     @State private var showRemoveConfirmation = false
     @State private var showRenameAlert = false
     @State private var renameDraft = ""
+    @State private var showReauthAlert = false
+    @State private var reauthDraft = ""
+    @State private var reauthError: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -77,6 +81,17 @@ struct AccountDetailView: View {
             case .failure(let message):
                 Label(message, systemImage: "exclamationmark.triangle")
                     .foregroundStyle(.orange)
+                if account.authKind == .cookie || account.authKind == .openRouter {
+                    Button("Re-authenticate…") {
+                        reauthDraft = ""
+                        showReauthAlert = true
+                    }
+                    if let reauthError {
+                        Text(reauthError)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                }
             }
 
             if let lastRefreshedAt = account.lastRefreshedAt {
@@ -105,6 +120,27 @@ struct AccountDetailView: View {
                 }
             }
             Button("Cancel", role: .cancel) {}
+        }
+        .alert("Re-authenticate “\(account.label)”", isPresented: $showReauthAlert) {
+            SecureField(account.authKind == .cookie ? "sessionKey cookie value or full Cookie header" : "sk-or-v1-…", text: $reauthDraft)
+            Button("Save") {
+                let secret = reauthDraft
+                reauthError = nil
+                Task {
+                    do {
+                        try await onReauth(secret)
+                    } catch ClaudeCookieError.wrongOrganization {
+                        reauthError = "That cookie's login can't see this account's organization — check you copied it from the right claude.ai login."
+                    } catch {
+                        reauthError = "That didn't work: \(error)"
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(account.authKind == .cookie
+                ? "Paste a fresh sessionKey cookie from a browser logged into claude.ai."
+                : "Paste a new API key from openrouter.ai/settings/keys.")
         }
     }
 
