@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.1](https://github.com/teknikqa/codeagent-meter/compare/v1.8.0...v1.8.1) (2026-10-13)
+
+
+### Bug Fixes
+
+* give the CI workflow read-only repo access ([#38](https://github.com/teknikqa/codeagent-meter/issues/38)) ([2107c1c](https://github.com/teknikqa/codeagent-meter/commit/2107c1ccf06559db38e2508fae41a6d157a1b05f))
+
 ## [1.8.0](https://github.com/teknikqa/codeagent-meter/compare/v1.7.1...v1.8.0) (2026-10-13)
 
 
