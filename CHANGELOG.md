@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/teknikqa/codeagent-meter/compare/v1.7.1...v1.8.0) (2026-10-13)
+
+
+### Features
+
+* test every PR and attach the built app to releases ([#28](https://github.com/teknikqa/codeagent-meter/issues/28)) ([dda9796](https://github.com/teknikqa/codeagent-meter/commit/dda9796de22a3f9585a7e457095bbb2e859f014a))
+
 ## [1.7.1](https://github.com/teknikqa/codeagent-meter/compare/v1.7.0...v1.7.1) (2026-10-02)
 
 
