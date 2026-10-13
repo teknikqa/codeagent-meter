@@ -4,7 +4,7 @@
   "description": "Commit-lint and release tooling for the CodeAgent Meter macOS app (the app itself is a Swift package).",
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",
-    "@commitlint/config-conventional": "^19.5.0",
+    "@commitlint/config-conventional": "^21.2.3",
     "conventional-changelog-cli": "^5.0.0",
     "husky": "^9.1.6"
   },
