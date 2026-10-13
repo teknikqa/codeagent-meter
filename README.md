@@ -4,6 +4,18 @@ A native macOS menu bar app for tracking usage/quota across AI coding agents. Tr
 
 Multi-provider, multi-account, Keychain-based auth, in a simple menu bar package.
 
+## Install
+
+1. Download `CodeAgent-Meter.zip` from the [latest release](https://github.com/teknikqa/codeagent-meter/releases/latest) and unzip it.
+2. Move `CodeAgent Meter.app` to `/Applications`.
+3. The app isn't notarized, so clear the download quarantine before the first launch:
+
+   ```sh
+   xattr -dr com.apple.quarantine "/Applications/CodeAgent Meter.app"
+   ```
+
+Release builds run on Apple silicon Macs only.
+
 ## Requirements
 
 - macOS 14 (Sonoma) or later
