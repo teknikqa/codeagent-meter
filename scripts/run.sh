@@ -14,6 +14,7 @@ CONFIGURATION="${1:-debug}"
 APP_NAME="CodeAgent Meter"
 EXECUTABLE_NAME="CodeAgentMeterApp"
 BUNDLE=".build/${APP_NAME}.app"
+VERSION="$(sed -n 's/.*"\.": "\(.*\)".*/\1/p' .release-please-manifest.json)"
 
 # The macOS 27 SDK turns SwiftUI's @State into a macro backed by the
 # SwiftUIMacros compiler plugin, which ships with Xcode but not with the
@@ -61,7 +62,7 @@ cat > "$BUNDLE/Contents/Info.plist" <<PLIST
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>${VERSION}</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>LSMinimumSystemVersion</key>
@@ -76,6 +77,11 @@ PLIST
 # (e.g. a Developer ID).
 echo "Signing..."
 codesign --force --deep --sign "${CODESIGN_IDENTITY:--}" "$BUNDLE"
+
+# NO_LAUNCH=1 stops after signing, for CI packaging.
+if [[ -n "${NO_LAUNCH:-}" ]]; then
+  exit 0
+fi
 
 echo "Launching..."
 open "$BUNDLE"
