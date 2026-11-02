@@ -34,3 +34,7 @@ jobs:
       - run: gh release upload "${{ needs.release-please.outputs.tag_name }}" CodeAgent-Meter.zip
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: ./scripts/update-cask.sh "${TAG#v}"
+        env:
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
