@@ -8,6 +8,16 @@ Multi-provider, multi-account, Keychain-based auth, in a simple menu bar package
 
 ## Install
 
+### Homebrew
+
+```sh
+brew install --cask teknikqa/tap/codeagent-meter
+```
+
+The cask clears the download quarantine for you.
+
+### Manual
+
 1. Download `CodeAgent-Meter.zip` from the [latest release](https://github.com/teknikqa/codeagent-meter/releases/latest) and unzip it.
 2. Move `CodeAgent Meter.app` to `/Applications`.
 3. The app isn't notarized, so clear the download quarantine before the first launch:
