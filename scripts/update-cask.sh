@@ -33,14 +33,16 @@ cask "codeagent-meter" do
   end
 
   depends_on arch: :arm64
-  depends_on macos: ">= :sonoma"
+  depends_on macos: :sonoma
 
   app "CodeAgent Meter.app"
 
   # The app isn't notarized, so clear quarantine or Gatekeeper blocks it.
-  postflight do
-    system_command "/usr/bin/xattr",
-                   args: ["-dr", "com.apple.quarantine", "#{appdir}/CodeAgent Meter.app"]
+  # Assumes the default /Applications appdir.
+  postflight_steps do
+    run "/usr/bin/xattr",
+        args:           ["-dr", "com.apple.quarantine", "/Applications/CodeAgent Meter.app"],
+        writable_paths: ["/Applications/CodeAgent Meter.app"]
   end
 end
 CASK
