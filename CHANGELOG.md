@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.9.0](https://github.com/teknikqa/codeagent-meter/compare/v1.8.1...v1.9.0) (2026-11-04)
+
+
+### Features
+
+* publish a Homebrew cask on release ([#44](https://github.com/teknikqa/codeagent-meter/issues/44)) ([3f59322](https://github.com/teknikqa/codeagent-meter/commit/3f5932299c7384444aedbcd14c1f6f633c1716cb))
+
+
+### Bug Fixes
+
+* bundle the app icon so Spotlight and the launch screen show it ([#48](https://github.com/teknikqa/codeagent-meter/issues/48)) ([2f1c90d](https://github.com/teknikqa/codeagent-meter/commit/2f1c90dc456e3411b840a12950e83ff51643c60e))
+* use current Homebrew cask syntax ([#46](https://github.com/teknikqa/codeagent-meter/issues/46)) ([657e9ae](https://github.com/teknikqa/codeagent-meter/commit/657e9ae7fa0a87dbbfc8a61d84fb45b83eebfe07))
+
 ## [1.8.1](https://github.com/teknikqa/codeagent-meter/compare/v1.8.0...v1.8.1) (2026-10-13)
 
 
