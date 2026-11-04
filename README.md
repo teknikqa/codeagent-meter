@@ -11,10 +11,11 @@ Multi-provider, multi-account, Keychain-based auth, in a simple menu bar package
 ### Homebrew
 
 ```sh
+brew trust teknikqa/tap
 brew install --cask teknikqa/tap/codeagent-meter
 ```
 
-The cask clears the download quarantine for you.
+Recent Homebrew versions refuse to load casks from a tap until you trust it, hence the first command. The cask clears the download quarantine for you.
 
 ### Manual
 
