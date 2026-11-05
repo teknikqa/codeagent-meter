@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.1](https://github.com/teknikqa/codeagent-meter/compare/v1.9.0...v1.9.1) (2026-11-05)
+
+
+### Bug Fixes
+
+* make the add-account provider list fit and say which tool each option adds ([#49](https://github.com/teknikqa/codeagent-meter/issues/49)) ([82feff8](https://github.com/teknikqa/codeagent-meter/commit/82feff8d3e4a2b413ad8731756deeb5ee33879d0))
+
 ## [1.9.0](https://github.com/teknikqa/codeagent-meter/compare/v1.8.1...v1.9.0) (2026-11-04)
 
 
