@@ -131,6 +131,8 @@ struct AccountDetailView: View {
                         try await onReauth(secret)
                     } catch ClaudeCookieError.wrongOrganization {
                         reauthError = "That cookie's login can't see this account's organization — check you copied it from the right claude.ai login."
+                    } catch ClaudeCookieError.blockedByBotCheck {
+                        reauthError = "claude.ai blocked the request with a bot check, so the cookie can't be verified. Add the account with “Claude Code (CLI login)” and its config dir instead."
                     } catch {
                         reauthError = "That didn't work: \(error)"
                     }
@@ -167,7 +169,7 @@ struct AccountDetailView: View {
 
     private var authKindLabel: String {
         switch account.authKind {
-        case .cliKeychain: return "Claude Code CLI"
+        case .cliKeychain: return "Claude Code CLI · \(account.claudeConfigDir ?? ClaudeCLICredentialReader.defaultConfigDir)"
         case .cookie: return "Session cookie"
         case .adminKey: return "Admin key"
         case .codexCLI: return "Codex CLI · \(account.codexHome ?? CodexProvider.defaultHome)"

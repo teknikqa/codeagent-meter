@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 public enum ClaudeCLICredentialError: Error, Equatable {
@@ -17,22 +18,59 @@ public struct ClaudeCLICredentials: Sendable, Equatable {
 /// borrow them read-only. Never writes back to the CLI's own storage — see
 /// `ClaudeOAuthClient` for how refreshed tokens are cached separately.
 public struct ClaudeCLICredentialReader: Sendable {
-    /// The Keychain service name Claude Code CLI writes its own credentials under.
-    static let keychainService = "Claude Code-credentials"
+    public static let defaultConfigDir = "~/.claude"
+    private static let keychainServiceBase = "Claude Code-credentials"
 
-    private static var fileFallbackURL: URL {
-        FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".claude/.credentials.json")
+    /// Absolute path of the `CLAUDE_CONFIG_DIR` this reader covers.
+    private let configDir: String
+
+    public init(configDir: String? = nil) {
+        self.configDir = Self.absolutePath(configDir ?? Self.defaultConfigDir)
     }
 
-    public init() {}
+    private static func absolutePath(_ path: String) -> String {
+        URL(fileURLWithPath: (path as NSString).expandingTildeInPath).path
+    }
+
+    /// Where Claude Code keeps a config dir's login. The default dir (no
+    /// `CLAUDE_CONFIG_DIR`) uses the bare name; any other dir gets a suffix of
+    /// the first 8 hex digits of the SHA-256 of its path.
+    /// shortcut: a dir set explicitly to `~/.claude` hashes in Claude Code but
+    /// reads as the default here, so add a hashed lookup if anyone does that.
+    /// Internal (not private) so tests can exercise it directly.
+    static func keychainService(forConfigDir path: String) -> String {
+        let dir = absolutePath(path)
+        if dir == absolutePath(defaultConfigDir) { return keychainServiceBase }
+        let hash = SHA256.hash(data: Data(dir.utf8)).prefix(4).map { String(format: "%02x", $0) }.joined()
+        return "\(keychainServiceBase)-\(hash)"
+    }
+
+    private var fileFallbackURL: URL {
+        URL(fileURLWithPath: configDir).appendingPathComponent(".credentials.json")
+    }
+
+    /// The email Claude Code recorded when this dir was signed in, to label the
+    /// account. The default dir keeps it in `~/.claude.json`, others inside the dir.
+    public func accountEmail() -> String? {
+        let isDefault = configDir == Self.absolutePath(Self.defaultConfigDir)
+        let url = isDefault
+            ? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".claude.json")
+            : URL(fileURLWithPath: configDir).appendingPathComponent(".claude.json")
+        struct ConfigFile: Decodable {
+            struct Account: Decodable { let emailAddress: String? }
+            let oauthAccount: Account?
+        }
+        guard let data = try? Data(contentsOf: url),
+              let file = try? JSONDecoder().decode(ConfigFile.self, from: data) else { return nil }
+        return file.oauthAccount?.emailAddress
+    }
 
     public func readCredentials() throws -> ClaudeCLICredentials {
         do {
-            let data = try KeychainStore.readFirstData(service: Self.keychainService)
+            let data = try KeychainStore.readFirstData(service: Self.keychainService(forConfigDir: configDir))
             return try Self.decode(data)
         } catch let keychainError as KeychainError {
-            guard let fileData = try? Data(contentsOf: Self.fileFallbackURL) else {
+            guard let fileData = try? Data(contentsOf: fileFallbackURL) else {
                 // Neither source worked — surface the Keychain failure, since
                 // it's the primary path and the more informative of the two.
                 throw ClaudeCLICredentialError.underlying(String(describing: keychainError))

@@ -2,6 +2,28 @@ import XCTest
 @testable import CodeAgentMeterCore
 
 final class ClaudeCLICredentialReaderTests: XCTestCase {
+    func testDefaultConfigDirUsesTheBareKeychainService() {
+        XCTAssertEqual(
+            ClaudeCLICredentialReader.keychainService(forConfigDir: ClaudeCLICredentialReader.defaultConfigDir),
+            "Claude Code-credentials"
+        )
+    }
+
+    func testCustomConfigDirUsesAHashedKeychainService() {
+        // Confirmed against the Keychain item Claude Code created for this dir.
+        XCTAssertEqual(
+            ClaudeCLICredentialReader.keychainService(forConfigDir: "/Users/nickmathew/.claude-work"),
+            "Claude Code-credentials-779f29a3"
+        )
+    }
+
+    func testTrailingSlashDoesNotChangeTheKeychainService() {
+        XCTAssertEqual(
+            ClaudeCLICredentialReader.keychainService(forConfigDir: "/Users/nickmathew/.claude-work/"),
+            "Claude Code-credentials-779f29a3"
+        )
+    }
+
     func testDecodesVerifiedCredentialsFileShape() throws {
         // Shape confirmed against a real Claude Code CLI Keychain item: a
         // top-level `claudeAiOauth` object, alongside unrelated `mcpOAuth`
