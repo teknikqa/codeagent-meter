@@ -37,10 +37,10 @@ public struct ClaudeCookieClient: Sendable {
         )
 
         return UsageSnapshot(
-            percentUsed: usage.fiveHour.utilization,
-            resetsAt: usage.fiveHour.resolvedResetsAt,
-            weeklyPercentUsed: usage.sevenDay.utilization,
-            weeklyResetsAt: usage.sevenDay.resolvedResetsAt,
+            percentUsed: usage.fiveHour?.utilization,
+            resetsAt: usage.fiveHour?.resolvedResetsAt,
+            weeklyPercentUsed: usage.sevenDay?.utilization,
+            weeklyResetsAt: usage.sevenDay?.resolvedResetsAt,
             detailLabel: nil
         )
     }

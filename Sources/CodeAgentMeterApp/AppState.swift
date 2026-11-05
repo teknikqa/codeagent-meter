@@ -115,6 +115,9 @@ public final class AppState: ObservableObject {
     }
 
     private static func describe(_ error: Error) -> String {
+        if case ClaudeCookieError.blockedByBotCheck = error { return "Blocked by claude.ai's bot check" }
+        if case ClaudeCookieError.decodingFailed = error { return "Unexpected reply from claude.ai" }
+        if case ClaudeCookieError.requestFailed(let status) = error { return "claude.ai returned \(status)" }
         if error is ClaudeCookieError { return "Needs re-auth" }
         if error is ClaudeOAuthError { return "Needs re-auth" }
         if case CodexError.cliUnavailable = error { return "Codex CLI unavailable" }

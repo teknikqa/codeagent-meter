@@ -41,6 +41,10 @@ struct AddAccountView: View {
 
             TextField("Label (optional, e.g. Work, Personal)", text: $label)
                 .textFieldStyle(.roundedBorder)
+                .onChange(of: label) { _, newValue in
+                    // Guards against a secret pasted here by mistake becoming the account's name.
+                    if newValue.count > 60 { label = String(newValue.prefix(60)) }
+                }
 
             switch mode {
             case .cliDetect:

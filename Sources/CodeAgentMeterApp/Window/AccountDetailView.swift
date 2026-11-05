@@ -20,6 +20,8 @@ struct AccountDetailView: View {
             HStack {
                 Text(account.label)
                     .font(.headline)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
                 Button {
                     renameDraft = account.label
                     showRenameAlert = true
@@ -102,7 +104,7 @@ struct AccountDetailView: View {
         }
         .padding(.vertical, 4)
         .confirmationDialog(
-            "Remove “\(account.label)”?",
+            "Remove “\(shortLabel)”?",
             isPresented: $showRemoveConfirmation,
             titleVisibility: .visible
         ) {
@@ -121,7 +123,7 @@ struct AccountDetailView: View {
             }
             Button("Cancel", role: .cancel) {}
         }
-        .alert("Re-authenticate “\(account.label)”", isPresented: $showReauthAlert) {
+        .alert("Re-authenticate “\(shortLabel)”", isPresented: $showReauthAlert) {
             SecureField(account.authKind == .cookie ? "sessionKey cookie value or full Cookie header" : "sk-or-v1-…", text: $reauthDraft)
             Button("Save") {
                 let secret = reauthDraft
@@ -165,6 +167,12 @@ struct AccountDetailView: View {
                     .foregroundStyle(.tertiary)
             }
         }
+    }
+
+    /// A label can hold anything the user pasted into the field, so keep dialog
+    /// titles short enough that their buttons stay on screen.
+    private var shortLabel: String {
+        account.label.count > 40 ? "\(account.label.prefix(40))…" : account.label
     }
 
     private var authKindLabel: String {
