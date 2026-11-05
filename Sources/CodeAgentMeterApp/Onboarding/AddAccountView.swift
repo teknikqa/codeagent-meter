@@ -29,13 +29,14 @@ struct AddAccountView: View {
             Text("Add Account")
                 .font(.headline)
 
-            Picker("", selection: $mode) {
+            // A dropdown, not segments: eight labels outgrow the window and clip the whole form.
+            Picker("Sign-in method", selection: $mode) {
                 ForEach(Mode.allCases) { mode in
                     Text(mode.rawValue).tag(mode)
                 }
             }
-            .pickerStyle(.segmented)
-            .labelsHidden()
+            .pickerStyle(.menu)
+            .fixedSize()
 
             TextField("Label (optional, e.g. Work, Personal)", text: $label)
                 .textFieldStyle(.roundedBorder)
