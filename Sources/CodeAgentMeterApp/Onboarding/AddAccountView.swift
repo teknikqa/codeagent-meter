@@ -13,8 +13,8 @@ struct AddAccountView: View {
     @State private var errorMessage: String?
 
     private enum Mode: String, CaseIterable, Identifiable {
-        case cliDetect = "Detect CLI Login"
-        case cookie = "Paste Session Cookie"
+        case cliDetect = "Claude Code (CLI login)"
+        case cookie = "Claude (session cookie)"
         case codex = "Codex CLI"
         case antigravity = "Antigravity"
         case cursor = "Cursor"
@@ -30,7 +30,7 @@ struct AddAccountView: View {
                 .font(.headline)
 
             // A dropdown, not segments: eight labels outgrow the window and clip the whole form.
-            Picker("Sign-in method", selection: $mode) {
+            Picker("Provider", selection: $mode) {
                 ForEach(Mode.allCases) { mode in
                     Text(mode.rawValue).tag(mode)
                 }
