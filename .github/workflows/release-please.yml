@@ -13,16 +13,24 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
+      # An app token (not GITHUB_TOKEN) so the release PR runs CI without
+      # approval, as in teknikqa/upkeep.
+      - uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
       - id: release
         uses: googleapis/release-please-action@v5
         with:
+          token: ${{ steps.app-token.outputs.token }}
           release-type: simple
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
 
-  # Lives here, not in a release-triggered workflow: releases created with
-  # GITHUB_TOKEN don't trigger other workflows.
+  # Lives here to use the release outputs directly.
   upload-app:
     needs: release-please
     if: needs.release-please.outputs.release_created == 'true'
