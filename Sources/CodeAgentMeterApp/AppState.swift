@@ -32,6 +32,7 @@ public final class AppState: ObservableObject {
     @Published public private(set) var vendorStatus: [String: ProviderStatus] = [:]
 
     private let historyStore = UsageHistoryStore()
+    private let costScanner = CostScanner()
     private let store: AccountStore
     private var refreshScheduler: RefreshScheduler?
     private var thresholdTracker = ThresholdTracker()
@@ -91,6 +92,16 @@ public final class AppState: ObservableObject {
             let matching = accounts.filter { $0.vendorID == vendor.id }
             return matching.isEmpty ? nil : (vendor.id, vendor.displayName, matching)
         }
+    }
+
+    /// Scans the Claude Code and Codex session logs of every tracked account's
+    /// config dir (plus the defaults), pricing them at API rates.
+    public func scanCosts() async -> [CostBucket] {
+        let claudeDirs = Set([ClaudeCLICredentialReader.defaultConfigDir] + accounts.compactMap(\.claudeConfigDir))
+        let codexHomes = Set([CodexProvider.defaultHome] + accounts.compactMap(\.codexHome))
+        return await costScanner.scan(
+            claudeDirs: claudeDirs.map { ($0 as NSString).expandingTildeInPath },
+            codexHomes: codexHomes.map { ($0 as NSString).expandingTildeInPath })
     }
 
     public func loadAccounts() async {

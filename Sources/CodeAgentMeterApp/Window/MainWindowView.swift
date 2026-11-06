@@ -6,6 +6,31 @@ struct MainWindowView: View {
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
+        TabView {
+            accountsTab.tabItem { Label("Accounts", systemImage: "gauge.with.dots.needle.67percent") }
+            SpendView().tabItem { Label("Spend", systemImage: "dollarsign.circle") }
+        }
+        .frame(minWidth: 480, minHeight: 320)
+        .navigationTitle("CodeAgent Meter")
+        .toolbar {
+            ToolbarItem {
+                Button {
+                    Task { await appState.refreshAll() }
+                } label: {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                }
+            }
+            ToolbarItem {
+                Button {
+                    openWindow(id: "add-account")
+                } label: {
+                    Label("Add Account", systemImage: "plus")
+                }
+            }
+        }
+    }
+
+    private var accountsTab: some View {
         Group {
             if appState.accounts.isEmpty {
                 ContentUnavailableView(
@@ -38,24 +63,6 @@ struct MainWindowView: View {
                         }
                     }
                     }
-                }
-            }
-        }
-        .frame(minWidth: 480, minHeight: 320)
-        .navigationTitle("CodeAgent Meter")
-        .toolbar {
-            ToolbarItem {
-                Button {
-                    Task { await appState.refreshAll() }
-                } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                }
-            }
-            ToolbarItem {
-                Button {
-                    openWindow(id: "add-account")
-                } label: {
-                    Label("Add Account", systemImage: "plus")
                 }
             }
         }
