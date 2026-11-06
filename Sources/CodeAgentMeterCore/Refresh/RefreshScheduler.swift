@@ -1,32 +1,38 @@
 import Foundation
 
-/// Fixed-interval refresh loop. An adaptive/backoff scheduler is
-/// deliberately not built here — this is intentionally the simplest thing
-/// that works for MVP.
+/// Refresh loop whose wait is re-evaluated after every run, so the interval
+/// can adapt (see `RefreshPolicy`).
 @MainActor
 public final class RefreshScheduler {
-    private var timer: Timer?
-    private let intervalSeconds: TimeInterval
+    private var task: Task<Void, Never>?
+    private let nextInterval: @MainActor () -> TimeInterval
     private let onFire: @Sendable () async -> Void
 
-    public init(intervalSeconds: TimeInterval, onFire: @escaping @Sendable () async -> Void) {
-        self.intervalSeconds = intervalSeconds
+    public init(
+        nextInterval: @escaping @MainActor () -> TimeInterval,
+        onFire: @escaping @Sendable () async -> Void
+    ) {
+        self.nextInterval = nextInterval
         self.onFire = onFire
     }
 
     public func start() {
         stop()
-        timer = Timer.scheduledTimer(withTimeInterval: intervalSeconds, repeats: true) { [onFire] _ in
-            Task { await onFire() }
+        task = Task { [nextInterval, onFire] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: UInt64(nextInterval() * 1_000_000_000))
+                if Task.isCancelled { break }
+                await onFire()
+            }
         }
     }
 
     public func stop() {
-        timer?.invalidate()
-        timer = nil
+        task?.cancel()
+        task = nil
     }
 
     deinit {
-        timer?.invalidate()
+        task?.cancel()
     }
 }

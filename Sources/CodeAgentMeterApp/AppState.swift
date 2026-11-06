@@ -16,11 +16,19 @@ public final class AppState: ObservableObject {
     @Published public private(set) var accounts: [ClaudeAccount] = []
     @Published public private(set) var accountStates: [UUID: RefreshState] = [:]
 
+    @Published public var refreshMode: RefreshMode {
+        didSet { updateConfig { $0.refreshMode = refreshMode } }
+    }
+
     private let store: AccountStore
     private var refreshScheduler: RefreshScheduler?
+    private var failureStreak = 0
+    private var unchangedStreak = 0
+    private var lastFingerprint = ""
 
     public init(store: AccountStore = AccountStore()) {
         self.store = store
+        self.refreshMode = AppConfigStore().load().refreshMode
         // AppState is created once at launch via @StateObject, regardless of
         // which scenes (menu bar, windows) are actually visible — so this is
         // the one reliable place to kick off the initial load and the
@@ -32,10 +40,20 @@ public final class AppState: ObservableObject {
         }
     }
 
-    public func startAutoRefresh(intervalSeconds: TimeInterval? = nil) {
+    private func updateConfig(_ change: (inout AppConfig) -> Void) {
+        let configStore = AppConfigStore()
+        var config = configStore.load()
+        change(&config)
+        try? configStore.save(config)
+    }
+
+    public func startAutoRefresh() {
         guard refreshScheduler == nil else { return }
-        let interval = intervalSeconds ?? AppConfigStore().load().refreshIntervalSeconds
-        let scheduler = RefreshScheduler(intervalSeconds: interval) { [weak self] in
+        let scheduler = RefreshScheduler(nextInterval: { [weak self] in
+            guard let self else { return RefreshPolicy.activeSeconds }
+            return RefreshPolicy.interval(
+                mode: self.refreshMode, failureStreak: self.failureStreak, unchangedStreak: self.unchangedStreak)
+        }) { [weak self] in
             await self?.refreshAll()
         }
         scheduler.start()
@@ -79,6 +97,19 @@ public final class AppState: ObservableObject {
                 accountStates[id] = .failure(Self.describe(error))
             }
         }
+        updateStreaks(results)
+    }
+
+    /// Feeds `RefreshPolicy`: back off while any account fails, idle once no percentage moves.
+    private func updateStreaks(_ results: [UUID: Result<UsageSnapshot, Error>]) {
+        let anyFailed = results.values.contains { if case .failure = $0 { return true } else { return false } }
+        failureStreak = anyFailed ? failureStreak + 1 : 0
+        let fingerprint = results.keys.sorted { $0.uuidString < $1.uuidString }.map { id -> String in
+            guard case .success(let snapshot) = results[id] else { return "x" }
+            return snapshot.windows.map { "\($0.percent)" }.joined(separator: ",")
+        }.joined(separator: "|")
+        unchangedStreak = fingerprint == lastFingerprint ? unchangedStreak + 1 : 0
+        lastFingerprint = fingerprint
     }
 
     public func addAccount(_ account: ClaudeAccount) async throws {
