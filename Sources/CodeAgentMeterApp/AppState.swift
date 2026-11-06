@@ -20,6 +20,9 @@ public final class AppState: ObservableObject {
         didSet { updateConfig { $0.refreshMode = refreshMode } }
     }
 
+    @Published public private(set) var history: UsageHistory
+
+    private let historyStore = UsageHistoryStore()
     private let store: AccountStore
     private var refreshScheduler: RefreshScheduler?
     private var failureStreak = 0
@@ -29,6 +32,7 @@ public final class AppState: ObservableObject {
     public init(store: AccountStore = AccountStore()) {
         self.store = store
         self.refreshMode = AppConfigStore().load().refreshMode
+        self.history = UsageHistoryStore().load()
         // AppState is created once at launch via @StateObject, regardless of
         // which scenes (menu bar, windows) are actually visible — so this is
         // the one reliable place to kick off the initial load and the
@@ -93,10 +97,12 @@ public final class AppState: ObservableObject {
             switch result {
             case .success(let snapshot):
                 accountStates[id] = .success(snapshot)
+                history.record(account: id, snapshot: snapshot)
             case .failure(let error):
                 accountStates[id] = .failure(Self.describe(error))
             }
         }
+        historyStore.save(history)
         updateStreaks(results)
     }
 
@@ -126,6 +132,8 @@ public final class AppState: ObservableObject {
         try await store.removeAccount(id: id)
         accounts = await store.accounts
         accountStates[id] = nil
+        history.remove(account: id)
+        historyStore.save(history)
     }
 
     /// Swaps in a fresh secret for an account whose pasted credential expired

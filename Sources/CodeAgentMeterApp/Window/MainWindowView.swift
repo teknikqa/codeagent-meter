@@ -21,6 +21,7 @@ struct MainWindowView: View {
                             AccountDetailView(
                                 account: account,
                                 state: appState.accountStates[account.id] ?? .idle,
+                                history: appState.history,
                                 onRename: { newLabel in Task { try? await appState.renameAccount(id: account.id, label: newLabel) } },
                                 onReauth: { secret in try await appState.reauthenticate(account, secret: secret) },
                                 onRemove: { Task { try? await appState.removeAccount(id: account.id) } }

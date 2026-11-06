@@ -4,6 +4,7 @@ import CodeAgentMeterCore
 struct AccountDetailView: View {
     let account: ClaudeAccount
     let state: AppState.RefreshState
+    let history: UsageHistory
     let onRename: (String) -> Void
     let onReauth: (String) async throws -> Void
     let onRemove: () -> Void
@@ -49,30 +50,17 @@ struct AccountDetailView: View {
                     .foregroundStyle(.secondary)
             case .loading:
                 ProgressView()
-            case .success(let snapshot) where !snapshot.groups.isEmpty:
-                ForEach(snapshot.groups, id: \.name) { group in
-                    Text(group.name)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    if let percent = group.snapshot.percentUsed {
-                        usageRow(title: group.snapshot.primaryLabel, percent: percent, resetsAt: group.snapshot.resetsAt)
-                    }
-                    if let weeklyPercent = group.snapshot.weeklyPercentUsed {
-                        usageRow(title: "Weekly", percent: weeklyPercent, resetsAt: group.snapshot.weeklyResetsAt)
-                    }
-                }
-                if let detailLabel = snapshot.detailLabel {
-                    Text(detailLabel)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
             case .success(let snapshot):
-                if snapshot.percentUsed != nil || snapshot.weeklyPercentUsed != nil {
-                    if let percent = snapshot.percentUsed {
-                        usageRow(title: snapshot.primaryLabel, percent: percent, resetsAt: snapshot.resetsAt)
-                    }
-                    if let weeklyPercent = snapshot.weeklyPercentUsed {
-                        usageRow(title: "Weekly", percent: weeklyPercent, resetsAt: snapshot.weeklyResetsAt)
+                if snapshot.groups.isEmpty {
+                    ForEach(snapshot.windows, id: \.key) { usageRow($0) }
+                } else {
+                    ForEach(snapshot.groups, id: \.name) { group in
+                        Text(group.name)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        ForEach(snapshot.windows.filter { $0.key.hasPrefix("\(group.name)/") }, id: \.key) { window in
+                            usageRow(window, title: window.key.hasSuffix("/weekly") ? "Weekly" : group.snapshot.primaryLabel)
+                        }
                     }
                 }
                 if let detailLabel = snapshot.detailLabel {
@@ -149,22 +137,32 @@ struct AccountDetailView: View {
     }
 
     @ViewBuilder
-    private func usageRow(title: String, percent: Double, resetsAt: Date?) -> some View {
+    private func usageRow(_ window: UsageWindow, title: String? = nil) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack {
-                Text(title)
+                Text(title ?? window.label)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
-                Text("\(Int(percent))%")
+                Text("\(Int(window.percent))%")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            ProgressView(value: min(max(percent, 0), 100), total: 100)
-            if let resetsAt {
-                Text("Resets \(resetsAt.formatted(.relative(presentation: .named)))")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
+            ProgressView(value: min(max(window.percent, 0), 100), total: 100)
+            HStack {
+                if let resetsAt = window.resetsAt {
+                    Text("Resets \(resetsAt.formatted(.relative(presentation: .named)))")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+                Spacer()
+                PaceCaption(window: window)
+            }
+            if let length = window.length, let resetsAt = window.resetsAt {
+                BurndownChart(
+                    window: window,
+                    samples: history.samples(account: account.id, key: window.key, since: resetsAt.addingTimeInterval(-length))
+                )
             }
         }
     }
