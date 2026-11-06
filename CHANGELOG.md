@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0](https://github.com/teknikqa/codeagent-meter/compare/v1.10.0...v1.11.0) (2026-11-06)
+
+
+### Features
+
+* add pace, notifications, adaptive refresh, status badges and a spend tab ([#56](https://github.com/teknikqa/codeagent-meter/issues/56)) ([73d1629](https://github.com/teknikqa/codeagent-meter/commit/73d16294b0601f161b4c61a93c3e125490248e96))
+
 ## [1.10.0](https://github.com/teknikqa/codeagent-meter/compare/v1.9.1...v1.10.0) (2026-11-06)
 
 
