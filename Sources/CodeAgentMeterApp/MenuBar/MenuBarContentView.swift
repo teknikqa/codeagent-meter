@@ -38,6 +38,11 @@ struct MenuBarContentView: View {
                 activateAndFocusNewestWindow()
             }
 
+            Button("Settings…") {
+                openWindow(id: "settings")
+                activateAndFocusNewestWindow()
+            }
+
             Divider()
 
             Button("Quit") {

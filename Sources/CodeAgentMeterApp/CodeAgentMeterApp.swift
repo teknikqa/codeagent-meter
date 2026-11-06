@@ -22,6 +22,12 @@ struct CodeAgentMeterApp: App {
                 .environmentObject(appState)
         }
 
+        WindowGroup(id: "settings") {
+            SettingsView()
+                .environmentObject(appState)
+        }
+        .windowResizability(.contentSize)
+
         WindowGroup(id: "add-account") {
             AddAccountView()
                 .environmentObject(appState)

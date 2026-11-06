@@ -16,6 +16,13 @@ public final class AppState: ObservableObject {
     @Published public private(set) var accounts: [ClaudeAccount] = []
     @Published public private(set) var accountStates: [UUID: RefreshState] = [:]
 
+    @Published public var notificationsEnabled: Bool {
+        didSet {
+            updateConfig { $0.notificationsEnabled = notificationsEnabled }
+            if notificationsEnabled { UsageNotifier.requestAuthorization() }
+        }
+    }
+
     @Published public var refreshMode: RefreshMode {
         didSet { updateConfig { $0.refreshMode = refreshMode } }
     }
@@ -25,19 +32,23 @@ public final class AppState: ObservableObject {
     private let historyStore = UsageHistoryStore()
     private let store: AccountStore
     private var refreshScheduler: RefreshScheduler?
+    private var thresholdTracker = ThresholdTracker()
     private var failureStreak = 0
     private var unchangedStreak = 0
     private var lastFingerprint = ""
 
     public init(store: AccountStore = AccountStore()) {
         self.store = store
-        self.refreshMode = AppConfigStore().load().refreshMode
+        let config = AppConfigStore().load()
+        self.refreshMode = config.refreshMode
+        self.notificationsEnabled = config.notificationsEnabled
         self.history = UsageHistoryStore().load()
         // AppState is created once at launch via @StateObject, regardless of
         // which scenes (menu bar, windows) are actually visible — so this is
         // the one reliable place to kick off the initial load and the
         // recurring background refresh.
         Task { [weak self] in
+            if self?.notificationsEnabled == true { UsageNotifier.requestAuthorization() }
             await self?.loadAccounts()
             await self?.refreshAll()
             self?.startAutoRefresh()
@@ -98,6 +109,11 @@ public final class AppState: ObservableObject {
             case .success(let snapshot):
                 accountStates[id] = .success(snapshot)
                 history.record(account: id, snapshot: snapshot)
+                // Always evaluate so the tracker stays seeded, even while notifications are off.
+                let alerts = thresholdTracker.evaluate(account: id, windows: snapshot.windows)
+                if notificationsEnabled, let label = accounts.first(where: { $0.id == id })?.label {
+                    alerts.forEach { UsageNotifier.send($0, accountLabel: label) }
+                }
             case .failure(let error):
                 accountStates[id] = .failure(Self.describe(error))
             }
