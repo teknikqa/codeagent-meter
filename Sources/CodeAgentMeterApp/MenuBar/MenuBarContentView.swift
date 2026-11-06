@@ -12,10 +12,17 @@ struct MenuBarContentView: View {
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(appState.accountsByVendor, id: \.displayName) { group in
-                    Text(group.displayName.uppercased())
-                        .font(.caption2)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.secondary)
+                    HStack {
+                        Text(group.displayName.uppercased())
+                            .font(.caption2)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.secondary)
+                        if let status = appState.vendorStatus[group.vendorID], status.isIncident {
+                            Label(status.description, systemImage: "exclamationmark.triangle.fill")
+                                .font(.caption2)
+                                .foregroundStyle(.orange)
+                        }
+                    }
                     ForEach(group.accounts) { account in
                         AccountRowView(title: account.label, state: appState.accountStates[account.id] ?? .idle)
                     }

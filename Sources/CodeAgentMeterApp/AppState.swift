@@ -28,6 +28,8 @@ public final class AppState: ObservableObject {
     }
 
     @Published public private(set) var history: UsageHistory
+    /// Vendor ID -> current incident state, for vendors with a pollable status page.
+    @Published public private(set) var vendorStatus: [String: ProviderStatus] = [:]
 
     private let historyStore = UsageHistoryStore()
     private let store: AccountStore
@@ -84,10 +86,10 @@ public final class AppState: ObservableObject {
     }
 
     /// Accounts grouped under their vendor, in `ProviderRegistry.vendors` order, empty vendors omitted.
-    public var accountsByVendor: [(displayName: String, accounts: [ClaudeAccount])] {
+    public var accountsByVendor: [(vendorID: String, displayName: String, accounts: [ClaudeAccount])] {
         ProviderRegistry.vendors.compactMap { vendor in
             let matching = accounts.filter { $0.vendorID == vendor.id }
-            return matching.isEmpty ? nil : (vendor.displayName, matching)
+            return matching.isEmpty ? nil : (vendor.id, vendor.displayName, matching)
         }
     }
 
@@ -101,7 +103,9 @@ public final class AppState: ObservableObject {
             accountStates[account.id] = .loading
         }
 
+        async let statuses = ProviderStatusClient.fetchAll()
         let results = await store.refreshAll()
+        vendorStatus = await statuses
         accounts = await store.accounts
 
         for (id, result) in results {

@@ -16,7 +16,7 @@ struct MainWindowView: View {
             } else {
                 List {
                     ForEach(appState.accountsByVendor, id: \.displayName) { group in
-                    Section(group.displayName) {
+                    Section {
                         ForEach(group.accounts) { account in
                             AccountDetailView(
                                 account: account,
@@ -26,6 +26,15 @@ struct MainWindowView: View {
                                 onReauth: { secret in try await appState.reauthenticate(account, secret: secret) },
                                 onRemove: { Task { try? await appState.removeAccount(id: account.id) } }
                             )
+                        }
+                    } header: {
+                        HStack {
+                            Text(group.displayName)
+                            if let status = appState.vendorStatus[group.vendorID], status.isIncident {
+                                Label(status.description, systemImage: "exclamationmark.triangle.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(.orange)
+                            }
                         }
                     }
                     }
