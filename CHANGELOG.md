@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.10.0](https://github.com/teknikqa/codeagent-meter/compare/v1.9.1...v1.10.0) (2026-11-06)
+
+
+### Features
+
+* monitor Claude accounts by config directory ([#53](https://github.com/teknikqa/codeagent-meter/issues/53)) ([61cdbed](https://github.com/teknikqa/codeagent-meter/commit/61cdbed5a49a0d07dd26e82dafba73225c3a21f5))
+* sign releases with a fixed certificate ([#51](https://github.com/teknikqa/codeagent-meter/issues/51)) ([ef9d8cc](https://github.com/teknikqa/codeagent-meter/commit/ef9d8ccfb3bdfef792267242ab85be5d3c5e1571))
+
 ## [1.9.1](https://github.com/teknikqa/codeagent-meter/compare/v1.9.0...v1.9.1) (2026-11-05)
 
 
