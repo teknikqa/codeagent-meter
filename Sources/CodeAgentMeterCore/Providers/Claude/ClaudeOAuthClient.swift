@@ -21,15 +21,10 @@ public struct ClaudeOAuthClient: Sendable {
     private static let usageURL = URL(string: "https://api.anthropic.com/api/oauth/usage")!
     private static let profileURL = URL(string: "https://api.anthropic.com/api/oauth/profile")!
 
-    private let credentialReader: ClaudeCLICredentialReader
     private let tokenCache: KeychainStore
     private let urlSession: URLSession
 
-    public init(
-        credentialReader: ClaudeCLICredentialReader = ClaudeCLICredentialReader(),
-        urlSession: URLSession = .shared
-    ) {
-        self.credentialReader = credentialReader
+    public init(urlSession: URLSession = .shared) {
         self.tokenCache = KeychainStore(service: Self.tokenCacheService)
         self.urlSession = urlSession
     }
@@ -57,6 +52,7 @@ public struct ClaudeOAuthClient: Sendable {
     }
 
     private func validAccessToken(for account: ClaudeAccount) async throws -> String {
+        let credentialReader = ClaudeCLICredentialReader(configDir: account.claudeConfigDir)
         if let cached = cachedToken(for: account), cached.expiresAt > Date() {
             return cached.accessToken
         }

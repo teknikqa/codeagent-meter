@@ -20,6 +20,8 @@ public struct ClaudeAccount: Identifiable, Codable, Equatable, Sendable {
     public var orgId: String?
     /// `CODEX_HOME` for `.codexCLI` accounts, e.g. `~/.codex`.
     public var codexHome: String?
+    /// `CLAUDE_CONFIG_DIR` for `.cliKeychain` accounts; nil means the default `~/.claude`.
+    public var claudeConfigDir: String?
     public var createdAt: Date
     public var lastRefreshedAt: Date?
 
@@ -30,6 +32,7 @@ public struct ClaudeAccount: Identifiable, Codable, Equatable, Sendable {
         keychainKey: String,
         orgId: String? = nil,
         codexHome: String? = nil,
+        claudeConfigDir: String? = nil,
         createdAt: Date = Date(),
         lastRefreshedAt: Date? = nil
     ) {
@@ -39,6 +42,7 @@ public struct ClaudeAccount: Identifiable, Codable, Equatable, Sendable {
         self.keychainKey = keychainKey
         self.orgId = orgId
         self.codexHome = codexHome
+        self.claudeConfigDir = claudeConfigDir
         self.createdAt = createdAt
         self.lastRefreshedAt = lastRefreshedAt
     }

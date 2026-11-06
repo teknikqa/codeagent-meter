@@ -20,6 +20,8 @@ struct AccountDetailView: View {
             HStack {
                 Text(account.label)
                     .font(.headline)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
                 Button {
                     renameDraft = account.label
                     showRenameAlert = true
@@ -102,7 +104,7 @@ struct AccountDetailView: View {
         }
         .padding(.vertical, 4)
         .confirmationDialog(
-            "Remove “\(account.label)”?",
+            "Remove “\(shortLabel)”?",
             isPresented: $showRemoveConfirmation,
             titleVisibility: .visible
         ) {
@@ -121,7 +123,7 @@ struct AccountDetailView: View {
             }
             Button("Cancel", role: .cancel) {}
         }
-        .alert("Re-authenticate “\(account.label)”", isPresented: $showReauthAlert) {
+        .alert("Re-authenticate “\(shortLabel)”", isPresented: $showReauthAlert) {
             SecureField(account.authKind == .cookie ? "sessionKey cookie value or full Cookie header" : "sk-or-v1-…", text: $reauthDraft)
             Button("Save") {
                 let secret = reauthDraft
@@ -131,6 +133,8 @@ struct AccountDetailView: View {
                         try await onReauth(secret)
                     } catch ClaudeCookieError.wrongOrganization {
                         reauthError = "That cookie's login can't see this account's organization — check you copied it from the right claude.ai login."
+                    } catch ClaudeCookieError.blockedByBotCheck {
+                        reauthError = "claude.ai blocked the request with a bot check, so the cookie can't be verified. Add the account with “Claude Code (CLI login)” and its config dir instead."
                     } catch {
                         reauthError = "That didn't work: \(error)"
                     }
@@ -165,9 +169,15 @@ struct AccountDetailView: View {
         }
     }
 
+    /// A label can hold anything the user pasted into the field, so keep dialog
+    /// titles short enough that their buttons stay on screen.
+    private var shortLabel: String {
+        account.label.count > 40 ? "\(account.label.prefix(40))…" : account.label
+    }
+
     private var authKindLabel: String {
         switch account.authKind {
-        case .cliKeychain: return "Claude Code CLI"
+        case .cliKeychain: return "Claude Code CLI · \(account.claudeConfigDir ?? ClaudeCLICredentialReader.defaultConfigDir)"
         case .cookie: return "Session cookie"
         case .adminKey: return "Admin key"
         case .codexCLI: return "Codex CLI · \(account.codexHome ?? CodexProvider.defaultHome)"

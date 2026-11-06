@@ -58,8 +58,9 @@ The trade-off: any process running as you can read this app's items the same way
 
 Anthropic doesn't publish a usage API for personal accounts, so this app borrows credentials rather than requiring an API key:
 
-1. **CLI-first (zero setup)**: reads the OAuth credentials Claude Code CLI already stores in the `"Claude Code-credentials"` Keychain item (falling back to `~/.claude/.credentials.json`), then calls the undocumented `api.anthropic.com/api/oauth/usage`/`/profile` endpoints. Refreshed tokens are cached in **this app's own** Keychain item — the CLI's credential item is never written to, so its own session is never touched.
-2. **Manual fallback**: paste a `sessionKey` cookie from claude.ai (DevTools → Application → Cookies), validated immediately against `claude.ai/api/organizations` before an account is ever created. Stored in this app's own Keychain service — never `UserDefaults`.
+1. **CLI-first (zero setup)**: reads the OAuth credentials Claude Code CLI already stores for a config directory, then calls the undocumented `api.anthropic.com/api/oauth/usage`/`/profile` endpoints. Refreshed tokens are cached in **this app's own** Keychain item — the CLI's credential item is never written to, so its own session is never touched.
+   Each account is one `CLAUDE_CONFIG_DIR` (default `~/.claude`), like Codex's `CODEX_HOME`. Claude Code keeps the default dir's login in the `"Claude Code-credentials"` Keychain item and any other dir's in `"Claude Code-credentials-<first 8 hex of the SHA-256 of the dir path>"`, with `<dir>/.credentials.json` as a fallback. To monitor another account, sign it in with `CLAUDE_CONFIG_DIR=~/.claude-work2 claude /login`, then add that directory. The account is labelled with the email from that directory's `.claude.json`.
+2. **Manual fallback**: paste a `sessionKey` cookie from claude.ai (DevTools → Application → Cookies), validated immediately against `claude.ai/api/organizations` before an account is ever created. claude.ai sits behind Cloudflare, which can answer with a bot challenge; the app reports that instead of a bad cookie, and the CLI route is the way around it. Stored in this app's own Keychain service — never `UserDefaults`.
 
 Add an account from the menu bar dropdown → **Add Account…**.
 

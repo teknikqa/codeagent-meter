@@ -80,8 +80,8 @@ struct ClaudeOrganization: Decodable {
 
 /// `GET /api/organizations/{uuid}/usage`.
 struct ClaudeUsageAPIResponse: Decodable {
-    let fiveHour: ClaudeUsageWindow
-    let sevenDay: ClaudeUsageWindow
+    let fiveHour: ClaudeUsageWindow?
+    let sevenDay: ClaudeUsageWindow?
     let sevenDaySonnet: ClaudeUsageWindow?
 
     enum CodingKeys: String, CodingKey {

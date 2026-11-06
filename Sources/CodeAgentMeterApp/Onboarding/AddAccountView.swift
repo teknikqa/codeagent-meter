@@ -8,6 +8,7 @@ struct AddAccountView: View {
     @State private var mode: Mode = .cliDetect
     @State private var label = ""
     @State private var codexHome = CodexProvider.defaultHome
+    @State private var claudeConfigDir = ClaudeCLICredentialReader.defaultConfigDir
     @State private var openRouterKey = ""
     @State private var isBusy = false
     @State private var errorMessage: String?
@@ -40,16 +41,22 @@ struct AddAccountView: View {
 
             TextField("Label (optional, e.g. Work, Personal)", text: $label)
                 .textFieldStyle(.roundedBorder)
+                .onChange(of: label) { _, newValue in
+                    // Guards against a secret pasted here by mistake becoming the account's name.
+                    if newValue.count > 60 { label = String(newValue.prefix(60)) }
+                }
 
             switch mode {
             case .cliDetect:
-                Text("Reads the login Claude Code CLI already stored in Keychain — no setup needed if you're logged into `claude` on this Mac.")
+                Text("Reads the login Claude Code CLI stored for this config directory. Use a different `CLAUDE_CONFIG_DIR` (e.g. `~/.claude-work`) for another account, signed in with `CLAUDE_CONFIG_DIR=<dir> claude /login`.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                TextField("Claude config dir", text: $claudeConfigDir)
+                    .textFieldStyle(.roundedBorder)
                 Button("Add Account") {
                     addCLIAccount()
                 }
-                .disabled(isBusy)
+                .disabled(isBusy || claudeConfigDir.isEmpty)
             case .cookie:
                 PasteCookieView(onSubmit: addCookieAccount, isBusy: isBusy)
             case .codex:
@@ -122,15 +129,22 @@ struct AddAccountView: View {
         Task {
             defer { isBusy = false }
             do {
-                _ = try ClaudeCLICredentialReader().readCredentials()
+                let reader = ClaudeCLICredentialReader(configDir: claudeConfigDir)
+                _ = try reader.readCredentials()
                 let id = UUID()
-                let resolvedLabel = label.isEmpty ? "Claude Code CLI" : label
-                let account = ClaudeAccount(id: id, label: resolvedLabel, authKind: .cliKeychain, keychainKey: id.uuidString)
+                let resolvedLabel = label.isEmpty ? (reader.accountEmail() ?? "Claude Code CLI") : label
+                let account = ClaudeAccount(
+                    id: id,
+                    label: resolvedLabel,
+                    authKind: .cliKeychain,
+                    keychainKey: id.uuidString,
+                    claudeConfigDir: claudeConfigDir
+                )
                 try await appState.addAccount(account)
                 await appState.refreshAll()
                 dismissWindow(id: "add-account")
             } catch {
-                errorMessage = "Couldn't read the Claude Code CLI login: \(error)"
+                errorMessage = "Couldn't read the Claude Code login for \(claudeConfigDir): \(error)"
             }
         }
     }
@@ -275,6 +289,8 @@ struct AddAccountView: View {
                 try await appState.addAccount(account)
                 await appState.refreshAll()
                 dismissWindow(id: "add-account")
+            } catch ClaudeCookieError.blockedByBotCheck {
+                errorMessage = "claude.ai blocked the request with a bot check, so the cookie can't be verified. Add the account with “Claude Code (CLI login)” and its config dir instead."
             } catch {
                 errorMessage = "That session cookie didn't work: \(error)"
             }

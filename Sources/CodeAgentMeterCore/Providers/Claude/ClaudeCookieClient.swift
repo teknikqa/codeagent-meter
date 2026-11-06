@@ -8,6 +8,8 @@ public enum ClaudeCookieError: Error {
     case decodingFailed
     case noOrganizationsFound
     case wrongOrganization
+    /// Cloudflare answered with its bot challenge, so the cookie was never checked.
+    case blockedByBotCheck
 }
 
 /// Fetches Claude usage via claude.ai's session-cookie-authenticated API, the
@@ -35,10 +37,10 @@ public struct ClaudeCookieClient: Sendable {
         )
 
         return UsageSnapshot(
-            percentUsed: usage.fiveHour.utilization,
-            resetsAt: usage.fiveHour.resolvedResetsAt,
-            weeklyPercentUsed: usage.sevenDay.utilization,
-            weeklyResetsAt: usage.sevenDay.resolvedResetsAt,
+            percentUsed: usage.fiveHour?.utilization,
+            resetsAt: usage.fiveHour?.resolvedResetsAt,
+            weeklyPercentUsed: usage.sevenDay?.utilization,
+            weeklyResetsAt: usage.sevenDay?.resolvedResetsAt,
             detailLabel: nil
         )
     }
@@ -119,6 +121,9 @@ public struct ClaudeCookieClient: Sendable {
         let (data, response) = try await urlSession.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw ClaudeCookieError.requestFailed(-1) }
         if http.statusCode == 401 { throw ClaudeCookieError.invalidSessionKey }
+        if http.statusCode == 403, http.value(forHTTPHeaderField: "cf-mitigated") == "challenge" {
+            throw ClaudeCookieError.blockedByBotCheck
+        }
         guard (200...299).contains(http.statusCode) else {
             throw ClaudeCookieError.requestFailed(http.statusCode)
         }
