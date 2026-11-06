@@ -29,6 +29,7 @@ struct AccountRowView: View {
             }
             if case .success(let snapshot) = state, let percent = snapshot.percentUsed {
                 ProgressView(value: min(max(percent, 0), 100), total: 100)
+                if let window = snapshot.windows.first(where: { $0.key == "primary" }) { PaceCaption(window: window) }
             }
             if case .success(let snapshot) = state, let weeklyPercent = snapshot.weeklyPercentUsed {
                 HStack {
@@ -41,6 +42,7 @@ struct AccountRowView: View {
                         .foregroundStyle(.secondary)
                 }
                 ProgressView(value: min(max(weeklyPercent, 0), 100), total: 100)
+                if let window = snapshot.windows.first(where: { $0.key == "weekly" }) { PaceCaption(window: window) }
             }
         }
     }

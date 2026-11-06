@@ -16,26 +16,62 @@ public final class AppState: ObservableObject {
     @Published public private(set) var accounts: [ClaudeAccount] = []
     @Published public private(set) var accountStates: [UUID: RefreshState] = [:]
 
+    @Published public var notificationsEnabled: Bool {
+        didSet {
+            updateConfig { $0.notificationsEnabled = notificationsEnabled }
+            if notificationsEnabled { UsageNotifier.requestAuthorization() }
+        }
+    }
+
+    @Published public var refreshMode: RefreshMode {
+        didSet { updateConfig { $0.refreshMode = refreshMode } }
+    }
+
+    @Published public private(set) var history: UsageHistory
+    /// Vendor ID -> current incident state, for vendors with a pollable status page.
+    @Published public private(set) var vendorStatus: [String: ProviderStatus] = [:]
+
+    private let historyStore = UsageHistoryStore()
+    private let costScanner = CostScanner()
     private let store: AccountStore
     private var refreshScheduler: RefreshScheduler?
+    private var thresholdTracker = ThresholdTracker()
+    private var failureStreak = 0
+    private var unchangedStreak = 0
+    private var lastFingerprint = ""
 
     public init(store: AccountStore = AccountStore()) {
         self.store = store
+        let config = AppConfigStore().load()
+        self.refreshMode = config.refreshMode
+        self.notificationsEnabled = config.notificationsEnabled
+        self.history = UsageHistoryStore().load()
         // AppState is created once at launch via @StateObject, regardless of
         // which scenes (menu bar, windows) are actually visible — so this is
         // the one reliable place to kick off the initial load and the
         // recurring background refresh.
         Task { [weak self] in
+            if self?.notificationsEnabled == true { UsageNotifier.requestAuthorization() }
             await self?.loadAccounts()
             await self?.refreshAll()
             self?.startAutoRefresh()
         }
     }
 
-    public func startAutoRefresh(intervalSeconds: TimeInterval? = nil) {
+    private func updateConfig(_ change: (inout AppConfig) -> Void) {
+        let configStore = AppConfigStore()
+        var config = configStore.load()
+        change(&config)
+        try? configStore.save(config)
+    }
+
+    public func startAutoRefresh() {
         guard refreshScheduler == nil else { return }
-        let interval = intervalSeconds ?? AppConfigStore().load().refreshIntervalSeconds
-        let scheduler = RefreshScheduler(intervalSeconds: interval) { [weak self] in
+        let scheduler = RefreshScheduler(nextInterval: { [weak self] in
+            guard let self else { return RefreshPolicy.activeSeconds }
+            return RefreshPolicy.interval(
+                mode: self.refreshMode, failureStreak: self.failureStreak, unchangedStreak: self.unchangedStreak)
+        }) { [weak self] in
             await self?.refreshAll()
         }
         scheduler.start()
@@ -51,11 +87,21 @@ public final class AppState: ObservableObject {
     }
 
     /// Accounts grouped under their vendor, in `ProviderRegistry.vendors` order, empty vendors omitted.
-    public var accountsByVendor: [(displayName: String, accounts: [ClaudeAccount])] {
+    public var accountsByVendor: [(vendorID: String, displayName: String, accounts: [ClaudeAccount])] {
         ProviderRegistry.vendors.compactMap { vendor in
             let matching = accounts.filter { $0.vendorID == vendor.id }
-            return matching.isEmpty ? nil : (vendor.displayName, matching)
+            return matching.isEmpty ? nil : (vendor.id, vendor.displayName, matching)
         }
+    }
+
+    /// Scans the Claude Code and Codex session logs of every tracked account's
+    /// config dir (plus the defaults), pricing them at API rates.
+    public func scanCosts() async -> [CostBucket] {
+        let claudeDirs = Set([ClaudeCLICredentialReader.defaultConfigDir] + accounts.compactMap(\.claudeConfigDir))
+        let codexHomes = Set([CodexProvider.defaultHome] + accounts.compactMap(\.codexHome))
+        return await costScanner.scan(
+            claudeDirs: claudeDirs.map { ($0 as NSString).expandingTildeInPath },
+            codexHomes: codexHomes.map { ($0 as NSString).expandingTildeInPath })
     }
 
     public func loadAccounts() async {
@@ -68,17 +114,39 @@ public final class AppState: ObservableObject {
             accountStates[account.id] = .loading
         }
 
+        async let statuses = ProviderStatusClient.fetchAll()
         let results = await store.refreshAll()
+        vendorStatus = await statuses
         accounts = await store.accounts
 
         for (id, result) in results {
             switch result {
             case .success(let snapshot):
                 accountStates[id] = .success(snapshot)
+                history.record(account: id, snapshot: snapshot)
+                // Always evaluate so the tracker stays seeded, even while notifications are off.
+                let alerts = thresholdTracker.evaluate(account: id, windows: snapshot.windows)
+                if notificationsEnabled, let label = accounts.first(where: { $0.id == id })?.label {
+                    alerts.forEach { UsageNotifier.send($0, accountLabel: label) }
+                }
             case .failure(let error):
                 accountStates[id] = .failure(Self.describe(error))
             }
         }
+        historyStore.save(history)
+        updateStreaks(results)
+    }
+
+    /// Feeds `RefreshPolicy`: back off while any account fails, idle once no percentage moves.
+    private func updateStreaks(_ results: [UUID: Result<UsageSnapshot, Error>]) {
+        let anyFailed = results.values.contains { if case .failure = $0 { return true } else { return false } }
+        failureStreak = anyFailed ? failureStreak + 1 : 0
+        let fingerprint = results.keys.sorted { $0.uuidString < $1.uuidString }.map { id -> String in
+            guard case .success(let snapshot) = results[id] else { return "x" }
+            return snapshot.windows.map { "\($0.percent)" }.joined(separator: ",")
+        }.joined(separator: "|")
+        unchangedStreak = fingerprint == lastFingerprint ? unchangedStreak + 1 : 0
+        lastFingerprint = fingerprint
     }
 
     public func addAccount(_ account: ClaudeAccount) async throws {
@@ -95,6 +163,8 @@ public final class AppState: ObservableObject {
         try await store.removeAccount(id: id)
         accounts = await store.accounts
         accountStates[id] = nil
+        history.remove(account: id)
+        historyStore.save(history)
     }
 
     /// Swaps in a fresh secret for an account whose pasted credential expired

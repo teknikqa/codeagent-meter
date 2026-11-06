@@ -112,10 +112,16 @@ OpenRouter has no local login to read, so you paste an API key from [openrouter.
 
 Adding another provider (e.g. Copilot) means a new `Providers/<Name>/` module conforming to `UsageProvider`, registered in `ProviderRegistry` — see `Providers/Codex/` for a minimal example.
 
+## Usage insights
+
+- **Pace and burndown.** Each 5-hour and weekly window shows how far ahead of (or under) an even burn you are, with a chart of the window so far. History is kept for 14 days in `~/Library/Application Support/codeagent-meter/history.json`.
+- **Notifications.** A macOS notification fires when a window crosses 80% and 100%, once per window. Turn it off in Settings.
+- **Adaptive refresh.** Settings → Refresh. Adaptive checks every minute, drops to 5 minutes once usage stops changing, and backs off (up to 15 minutes) while any account fails. Fixed 1/5/15/30 minute choices also back off on failure.
+- **Provider status.** A badge appears next to Claude Code or Codex when status.claude.com or status.openai.com report an incident.
+- **Spend tab.** Reads the session logs Claude Code and Codex already write (`~/.claude/projects`, `~/.codex/sessions`, plus any account config dirs) and prices tokens at API list rates, by model, project and day. Subscriptions don't bill per token, so treat it as "what this would cost on the API". Models without a known price (all Codex models today) show tokens only. Prices live in `ModelPricing.swift`.
+
 ## Non-goals for MVP
 
-- No usage history or charting — the window shows the current live snapshot only.
-- No adaptive/backoff refresh scheduling — a fixed 60s interval, configurable via `AppConfig.refreshIntervalSeconds`.
 - No Admin API (org-level `cost_report`/`usage_report`) client, even though the `.adminKey` account kind exists in the data model — no onboarding flow creates one yet.
 
 ## Commit conventions & releases
